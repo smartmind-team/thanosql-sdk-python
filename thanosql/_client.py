@@ -11,7 +11,13 @@ ENGINE_URL: str = os.environ.get("ENGINE_URL", "")
 
 
 class ThanoSQL(ThanoSQLBaseClient):
+    file: resources.FileService
     query: resources.QueryService
+    schema: resources.SchemaService
+    search: resources.SearchService
+    table_template: resources.TableTemplateService
+    table: resources.TableService
+    view: resources.ViewService
 
     def __init__(
         self,
@@ -21,4 +27,10 @@ class ThanoSQL(ThanoSQLBaseClient):
     ) -> None:
         super().__init__(base_url=engine_url, version=api_version, token=api_token)
 
+        self.file = resources.FileService(self)
         self.query = resources.QueryService(self)
+        self.schema = resources.SchemaService(self)
+        self.search = resources.SearchService(self)
+        self.table_template = resources.TableTemplateService(self)
+        self.table = resources.TableService(self)
+        self.view = resources.ViewService(self)
