@@ -19,5 +19,5 @@ class ThanoSQLService:
         for key, value in kwargs.items():
             if value is not None:
                 input_dict[key] = value
-        
+
         return input_dict
