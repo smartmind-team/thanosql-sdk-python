@@ -9,34 +9,113 @@ if TYPE_CHECKING:
 
 
 class QueryService(ThanoSQLService):
+    log: QueryLogService
+    template: QueryTemplateService
+
     def __init__(self, client: ThanoSQL) -> None:
+        self.log = QueryLogService(self)
+        self.template = QueryTemplateService(self)
+
         super().__init__(client=client, tag="query")
 
-    def post(self):
-        pass
+    def execute(
+        self,
+        query_type: str = "thanosql",
+        query_string: str | None = None,
+        template_id: int | None = None,
+        template_name: str | None = None,
+        parameters: dict | None = None,
+        schema: str | None = None,
+        table_name: str | None = None,
+        overwrite: bool | None = None,
+        max_results: int | None = None,
+    ) -> dict:
+        path = f"/{self.tag}/"
+        query_params = self.create_input_dict(
+            schema=schema,
+            table_name=table_name,
+            overwrite=overwrite,
+            max_results=max_results,
+        )
+        payload = self.create_input_dict(
+            query_type=query_type,
+            query_string=query_string,
+            template_id=template_id,
+            template_name=template_name,
+            parameters=parameters,
+        )
 
-    def get_logs(
+        return self.client.request(
+            method="post", path=path, query_params=query_params, payload=payload
+        )
+
+
+class QueryLogService(ThanoSQLService):
+    """Cannot exist without a parent QueryService"""
+
+    query: QueryService
+
+    def __init__(self, query: QueryService) -> None:
+        self.query = query
+
+        super().__init__(client=query.client, tag="log")
+
+    def list(
         self,
         search: str | None = None,
         offset: int | None = None,
         limit: int | None = None,
     ) -> dict:
-        path = f"/{self.tag}/log"
+        path = f"/{self.query.tag}/{self.tag}"
         query_params = self.create_input_dict(search=search, offset=offset, limit=limit)
 
         return self.client.request(method="get", path=path, query_params=query_params)
 
-    def get_templates(self):
-        pass
 
-    def create_template(self):
-        pass
+class QueryTemplateService(ThanoSQLService):
+    """Cannot exist without a parent QueryService"""
 
-    def get_template(self):
-        pass
+    query: QueryService
 
-    def update_template(self):
-        pass
+    def __init__(self, query: QueryService) -> None:
+        self.query = query
 
-    def delete_template(self):
-        pass
+        super().__init__(client=query.client, tag="template")
+
+    def list(
+        self,
+        search: str | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
+        order_by: str | None = None,
+    ) -> dict:
+        path = f"/{self.query.tag}/{self.tag}"
+        query_params = self.create_input_dict(
+            search=search, offset=offset, limit=limit, order_by=order_by
+        )
+
+        return self.client.request(method="get", path=path, query_params=query_params)
+
+    def create(self, name: str, query: str) -> dict:
+        path = f"/{self.query.tag}/{self.tag}"
+        payload = self.create_input_dict(name=name, query=query)
+
+        return self.client.request(method="post", path=path, payload=payload)
+
+    def get(self, name: str) -> dict:
+        path = f"/{self.query.tag}/{self.tag}/{name}"
+
+        return self.client.request(method="get", path=path)
+
+    def update(
+        self, current_name: str, new_name: str | None = None, query: str | None = None
+    ) -> dict:
+        path = f"/{self.query.tag}/{self.tag}/{current_name}"
+        payload = self.create_input_dict(name=new_name, query=query)
+
+        return self.client.request(method="put", path=path, payload=payload)
+
+    def delete(self, name: str) -> dict:
+        path = f"/{self.query.tag}/{self.tag}/{name}"
+
+        return self.client.request(method="delete", path=path)
