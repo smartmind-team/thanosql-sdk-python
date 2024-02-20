@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import os
+from typing import TYPE_CHECKING, TypeAlias
 
 from thanosql._service import ThanoSQLService
 
@@ -8,15 +9,50 @@ if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
 
 
+FileName: TypeAlias = str | bytes | os.PathLike
+
+
 class FileService(ThanoSQLService):
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="file")
 
-    def get_all(self):
-        pass
+    def list(self, path: FileName) -> dict:
+        api_path = f"/{self.tag}/"
+        query_params = self.create_input_dict(file_path=path)
 
-    def upload(self):
-        pass
+        return self.client.request(
+            method="get", path=api_path, query_params=query_params
+        )
 
-    def delete(self):
-        pass
+    def upload(
+        self,
+        path: FileName,
+        db_commit: bool | None = None,
+        table: str | None = None,
+        column: str | None = None,
+        dir: str | None = None,
+    ) -> dict:
+        api_path = f"/{self.tag}/"
+        query_params = self.create_input_dict(
+            db_commit=db_commit, table_name=table, column_name=column, dir=dir
+        )
+
+        return self.client.request(
+            method="post", path=api_path, query_params=query_params, file=path
+        )
+
+    def delete(
+        self,
+        path: FileName,
+        db_commit: bool | None = None,
+        table: str | None = None,
+        column: str | None = None,
+    ) -> dict:
+        api_path = f"/{self.tag}/"
+        query_params = self.create_input_dict(
+            file_path=path, db_commit=db_commit, table_name=table, column_name=column
+        )
+
+        return self.client.request(
+            method="delete", path=api_path, query_params=query_params
+        )

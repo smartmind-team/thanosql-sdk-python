@@ -12,8 +12,12 @@ class SchemaService(ThanoSQLService):
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="schema")
 
-    def get_all(self):
-        pass
+    def list(self) -> dict:
+        path = f"/{self.tag}/"
 
-    def create(self):
-        pass
+        return self.client.request(method="get", path=path)
+
+    def create(self, name: str) -> dict:
+        path = f"/{self.tag}/{name}"
+
+        return self.client.request(method="post", path=path)

@@ -1,8 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import requests
+
+if TYPE_CHECKING:
+    from thanosql.resources._file import FileName
 
 
 class ThanoSQLBaseClient:
@@ -49,6 +52,7 @@ class ThanoSQLBaseClient:
         path_params: dict | None = None,
         query_params: dict | None = None,
         payload: dict | None = None,
+        file: FileName | None = None,
     ) -> Any:
         full_url = self.create_full_url(
             path=path, path_params=path_params, query_params=query_params
@@ -57,8 +61,12 @@ class ThanoSQLBaseClient:
         header = self.create_auth_header()
 
         payload_json = {}
+
         if payload:
-            payload_json = {"json": payload}
+            payload_json["json"] = payload
+
+        if file:
+            payload_json["file"] = (file, open(file, "rb"))
 
         request_func = getattr(requests, method.lower())
 
