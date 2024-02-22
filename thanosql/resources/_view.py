@@ -12,11 +12,33 @@ class ViewService(ThanoSQLService):
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="view")
 
-    def get_all(self):
-        pass
+    def list(
+        self,
+        schema: str | None = None,
+        verbose: bool | None = None,
+        offset: int | None = None,
+        limit: int | None = None,
+    ) -> dict:
+        path = f"/{self.tag}/"
+        query_params = self.create_input_dict(
+            schema=schema,
+            verbose=verbose,
+            offset=offset,
+            limit=limit,
+        )
 
-    def get(self):
-        pass
+        return self.client.request(method="get", path=path, query_params=query_params)
 
-    def delete(self):
-        pass
+    def get(self, name: str, schema: str | None = None) -> dict:
+        path = f"/{self.tag}/{name}"
+        query_params = self.create_input_dict(schema=schema)
+
+        return self.client.request(method="get", path=path, query_params=query_params)
+
+    def delete(self, name: str, schema: str | None = None) -> dict:
+        path = f"/{self.tag}/{name}"
+        query_params = self.create_input_dict(schema=schema)
+
+        return self.client.request(
+            method="delete", path=path, query_params=query_params
+        )
