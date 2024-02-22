@@ -15,7 +15,6 @@ class ThanoSQL(ThanoSQLBaseClient):
     query: resources.QueryService
     schema: resources.SchemaService
     search: resources.SearchService
-    table_template: resources.TableTemplateService
     table: resources.TableService
     view: resources.ViewService
 
@@ -31,6 +30,5 @@ class ThanoSQL(ThanoSQLBaseClient):
         self.query = resources.QueryService(self)
         self.schema = resources.SchemaService(self)
         self.search = resources.SearchService(self)
-        self.table_template = resources.TableTemplateService(self)
         self.table = resources.TableService(self)
         self.view = resources.ViewService(self)
