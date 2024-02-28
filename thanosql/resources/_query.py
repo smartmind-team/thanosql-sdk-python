@@ -13,15 +13,15 @@ class QueryService(ThanoSQLService):
     template: QueryTemplateService
 
     def __init__(self, client: ThanoSQL) -> None:
+        super().__init__(client=client, tag="query")
+
         self.log = QueryLogService(self)
         self.template = QueryTemplateService(self)
-
-        super().__init__(client=client, tag="query")
 
     def execute(
         self,
         query_type: str = "thanosql",
-        query_string: str | None = None,
+        query: str | None = None,
         template_id: int | None = None,
         template_name: str | None = None,
         parameters: dict | None = None,
@@ -39,7 +39,7 @@ class QueryService(ThanoSQLService):
         )
         payload = self.create_input_dict(
             query_type=query_type,
-            query_string=query_string,
+            query_string=query,
             template_id=template_id,
             template_name=template_name,
             parameters=parameters,
@@ -56,9 +56,9 @@ class QueryLogService(ThanoSQLService):
     query: QueryService
 
     def __init__(self, query: QueryService) -> None:
-        self.query = query
-
         super().__init__(client=query.client, tag="log")
+
+        self.query = query
 
     def list(
         self,
@@ -78,9 +78,9 @@ class QueryTemplateService(ThanoSQLService):
     query: QueryService
 
     def __init__(self, query: QueryService) -> None:
-        self.query = query
-
         super().__init__(client=query.client, tag="template")
+
+        self.query = query
 
     def list(
         self,
@@ -96,11 +96,14 @@ class QueryTemplateService(ThanoSQLService):
 
         return self.client.request(method="get", path=path, query_params=query_params)
 
-    def create(self, name: str, query: str) -> dict:
+    def create(self, name: str, query: str, dry_run: bool | None = None) -> dict:
         path = f"/{self.query.tag}/{self.tag}"
+        query_params = self.create_input_dict(dry_run=dry_run)
         payload = self.create_input_dict(name=name, query=query)
 
-        return self.client.request(method="post", path=path, payload=payload)
+        return self.client.request(
+            method="post", path=path, query_params=query_params, payload=payload
+        )
 
     def get(self, name: str) -> dict:
         path = f"/{self.query.tag}/{self.tag}/{name}"
