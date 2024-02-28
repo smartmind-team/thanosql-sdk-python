@@ -2,5 +2,15 @@ from ._file import FileService
 from ._query import QueryService
 from ._schema import SchemaService
 from ._search import SearchService
-from ._table import Table, TableObject, TableService, TableServiceObject
+from ._table import (
+    BaseColumn,
+    Constraints,
+    ForeignKey,
+    PrimaryKey,
+    Table,
+    TableObject,
+    TableService,
+    TableServiceObject,
+    Unique,
+)
 from ._view import ViewService

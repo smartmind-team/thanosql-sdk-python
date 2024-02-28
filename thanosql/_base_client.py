@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Any
 
 import requests
+from tqdm import tqdm
+
+import thanosql._error as thanosql_error
 
 if TYPE_CHECKING:
     from thanosql.resources._file import FileName
@@ -53,6 +57,7 @@ class ThanoSQLBaseClient:
         query_params: dict | None = None,
         payload: dict | None = None,
         file: FileName | None = None,
+        stream: bool = False,
     ) -> Any:
         full_url = self.create_full_url(
             path=path, path_params=path_params, query_params=query_params
@@ -62,12 +67,70 @@ class ThanoSQLBaseClient:
 
         payload_json = {}
 
-        if payload:
-            payload_json["json"] = payload
+        try:
+            if file:
+                payload_json["files"] = {"file": (file, open(file, "rb"))}
+                if payload:
+                    payload_json["files"]["body"] = (
+                        None,
+                        json.dumps(payload),
+                        "application/json",
+                    )
 
-        if file:
-            payload_json["file"] = (file, open(file, "rb"))
+            elif payload:
+                payload_json["json"] = payload
 
-        request_func = getattr(requests, method.lower())
+            request_func = getattr(requests, method.lower())
+            response = request_func(
+                url=full_url, headers=header, stream=stream, **payload_json
+            )
 
-        return request_func(url=full_url, headers=header, **payload_json)
+            response_json = {}
+            if "application/json" in response.headers.get("Content-Type", ""):
+                response_json = response.json()
+
+            if not response.ok or "error" in response_json:
+                code = response.status_code
+                message = "An error had occurred. Please contact ThanoSQL team."
+
+                if "error" in response_json:
+                    code = response_json["error"].get("code", code)
+                    message = response_json["error"].get("message", message)
+
+                match code:
+                    case 400 | 405 | 422:
+                        raise thanosql_error.ThanoSQLValueError(message=message)
+                    case 401 | 403:
+                        raise thanosql_error.ThanoSQLPermissionError(message=message)
+                    case 404:
+                        raise thanosql_error.ThanoSQLNotFoundError(message=message)
+                    case 409:
+                        raise thanosql_error.ThanoSQLAlreadyExistsError(message=message)
+                    case 500:
+                        raise thanosql_error.ThanoSQLInternalError(message=message)
+
+            if stream:
+                filename = response.headers.get(
+                    "Content-Disposition", "filename=output.bin"
+                ).split("filename=")[1]
+                with open(filename, "wb") as handle:
+                    for data in tqdm(response.iter_content()):
+                        handle.write(data)
+                return {"message": f"Successfully downloaded {filename}."}
+
+            if response_json:
+                return response_json
+
+            return response
+        except thanosql_error.ThanoSQLError as ex:
+            raise ex
+        except FileNotFoundError as ex:
+            raise thanosql_error.ThanoSQLNotFoundError(message=str(ex))
+        except PermissionError as ex:
+            raise thanosql_error.ThanoSQLPermissionError(message=str(ex))
+        except requests.exceptions.JSONDecodeError as ex:
+            raise thanosql_error.ThanoSQLValueError(message=str(ex))
+        except TypeError as ex:
+            raise thanosql_error.ThanoSQLValueError(message=str(ex))
+        except Exception as e:
+            raise thanosql_error.ThanoSQLInternalError(message=str(e))
