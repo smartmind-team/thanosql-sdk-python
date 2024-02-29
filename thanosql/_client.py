@@ -14,7 +14,6 @@ class ThanoSQL(ThanoSQLBaseClient):
     file: resources.FileService
     query: resources.QueryService
     schema: resources.SchemaService
-    search: resources.SearchService
     table: resources.TableService
     view: resources.ViewService
 
@@ -29,6 +28,5 @@ class ThanoSQL(ThanoSQLBaseClient):
         self.file = resources.FileService(self)
         self.query = resources.QueryService(self)
         self.schema = resources.SchemaService(self)
-        self.search = resources.SearchService(self)
         self.table = resources.TableService(self)
         self.view = resources.ViewService(self)
