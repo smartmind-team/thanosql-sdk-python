@@ -120,3 +120,8 @@ dmypy.json
 
 # Antlr
 .antlr
+
+# For testing only
+trial*
+*.jpg
+*.csv
