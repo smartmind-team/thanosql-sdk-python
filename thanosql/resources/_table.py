@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from thanosql._service import ThanoSQLService
 
@@ -223,10 +223,9 @@ class TableObject(BaseModel):
 
 
 class TableServiceObject(Table):
-    service: TableService | None = None
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    class Config:
-        arbitrary_types_allowed = True
+    service: TableService | None = None
 
     def get_records(
         self,
