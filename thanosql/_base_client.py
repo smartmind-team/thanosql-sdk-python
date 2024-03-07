@@ -70,14 +70,14 @@ class ThanoSQLBaseClient:
         try:
             if file:
                 payload_json["files"] = {"file": (file, open(file, "rb"))}
-                if payload:
+                if payload is not None:
                     payload_json["files"]["body"] = (
                         None,
                         json.dumps(payload),
                         "application/json",
                     )
 
-            elif payload:
+            elif payload is not None:
                 payload_json["json"] = payload
 
             request_func = getattr(requests, method.lower())
