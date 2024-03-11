@@ -49,20 +49,13 @@ def test_get_view_nonexistent(client: ThanoSQL):
 
 
 @pytest.mark.parametrize(
-    "view_name, table_name",
-    [("empty_view_name", "empty_table_name"), ("basic_view_name", "basic_table_name")],
+    "view_name",
+    ["empty_view_name", "basic_view_name"],
 )
-def test_delete_view_success(
-    client: ThanoSQL, view_name: str, table_name: str, request: FixtureRequest
-):
+def test_delete_view_success(client: ThanoSQL, view_name: str, request: FixtureRequest):
     view_name = request.getfixturevalue(view_name)
     res = client.view.delete(name=view_name)
     assert isinstance(res, dict)
 
     with pytest.raises(ThanoSQLNotFoundError):
         client.view.get(name=view_name)
-
-    # also delete the tables used to create the views
-    # the assertions are covered by the delete table tests already
-    table_name = request.getfixturevalue(table_name)
-    client.table.delete(name=table_name)

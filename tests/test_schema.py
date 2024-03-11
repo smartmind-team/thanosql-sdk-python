@@ -20,12 +20,8 @@ def test_get_schemas_success(client: ThanoSQL):
     assert len(res["schemas"]) >= 2
 
 
-def test_create_schema(client: ThanoSQL, new_schema: str):
+def test_create_schema_same_name(client: ThanoSQL, new_schema: str):
     # schema creation is implicitly tested when calling fixture
     # trying to create a schema of the same name again should result in an error
     with pytest.raises(ThanoSQLAlreadyExistsError):
         client.schema.create(name=new_schema)
-
-    # all that's left is cleaning up, which does not have a dedicated API
-    res = delete_schema(client=client, name=new_schema)
-    assert res["error_result"] == None
