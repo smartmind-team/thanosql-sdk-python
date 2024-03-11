@@ -23,6 +23,20 @@ def create_table(
     return res
 
 
+def create_table_template(
+    client: ThanoSQL,
+    name: str,
+    table: TableObject | None = None,
+    version: str | None = None,
+    compatibility: str | None = None,
+) -> dict:
+    res = client.table.template.create(
+        name=name, table_template=table, version=version, compatibility=compatibility
+    )
+    res = client.table.template.get(name=name, version=version)
+    return res["table_templates"][0]
+
+
 def create_view(
     client: ThanoSQL,
     name: str,
