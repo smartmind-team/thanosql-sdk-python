@@ -57,6 +57,16 @@ def basic_table(client: ThanoSQL) -> TableServiceObject:
 
 
 @pytest.fixture(scope="module")
+def empty_table_name(empty_table: TableServiceObject) -> str:
+    return empty_table.name
+
+
+@pytest.fixture(scope="module")
+def basic_table_name(basic_table: TableServiceObject) -> str:
+    return basic_table.name
+
+
+@pytest.fixture(scope="module")
 def empty_table_template(client: ThanoSQL) -> dict:
     name = f"test_empty_template_{fake.unique.pystr(min_chars=8, max_chars=8).lower()}"
     yield create_table_template(client=client, name=name, table=TableObject())
@@ -69,16 +79,6 @@ def empty_table_template(client: ThanoSQL) -> dict:
 @pytest.fixture(scope="module")
 def empty_table_template_name(empty_table_template: dict) -> str:
     return empty_table_template["name"]
-
-
-@pytest.fixture(scope="module")
-def empty_table_name(empty_table: TableServiceObject) -> str:
-    return empty_table.name
-
-
-@pytest.fixture(scope="module")
-def basic_table_name(basic_table: TableServiceObject) -> str:
-    return basic_table.name
 
 
 @pytest.fixture(scope="module")
