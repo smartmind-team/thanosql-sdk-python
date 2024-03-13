@@ -63,14 +63,15 @@ class ThanoSQLBaseClient:
             path=path, path_params=path_params, query_params=query_params
         )
 
-        header = self.create_auth_header()
+        headers = self.create_auth_header()
+        headers["accept"] = "application/json"
 
         payload_json = {}
 
         try:
             if file:
                 payload_json["files"] = {"file": (file, open(file, "rb"))}
-                if payload is not None:
+                if payload:
                     payload_json["files"]["body"] = (
                         None,
                         json.dumps(payload),
@@ -82,7 +83,7 @@ class ThanoSQLBaseClient:
 
             request_func = getattr(requests, method.lower())
             response = request_func(
-                url=full_url, headers=header, stream=stream, **payload_json
+                url=full_url, headers=headers, stream=stream, **payload_json
             )
 
             response_json = {}
