@@ -16,7 +16,11 @@ class ThanoSQLService:
         self.tag = tag
 
     def convert_obj_to_dict(self, obj: object) -> dict:
-        return json.loads(json.dumps(obj, default=lambda o: o.__dict__))
+        try:
+            model_dump = obj.model_dump_json(by_alias=True)
+        except:
+            model_dump = json.dumps(obj, default=lambda o: o.__dict__)
+        return json.loads(model_dump)
 
     def create_input_dict(self, **kwargs) -> dict:
         input_dict = {}

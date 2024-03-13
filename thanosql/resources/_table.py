@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
+from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 
 if TYPE_CHECKING:
@@ -97,6 +98,10 @@ class TableService(ThanoSQLService):
             ".odt",
         ]:
             path = path + "excel"
+        else:
+            raise ThanoSQLValueError(
+                "Invalid format: only CSV and Excel files possible."
+            )
 
         query_params = self.create_input_dict(schema=schema, if_exists=if_exists)
         payload = self.create_input_dict(table=table)
@@ -208,13 +213,13 @@ class Constraints(BaseModel):
 
 
 class BaseTable(BaseModel):
-    name: str | None
-    table_schema: str | None = Field(alias="schema")
+    name: str | None = None
+    table_schema: str | None = Field(alias="schema", default=None)
 
 
 class Table(BaseTable):
-    columns: list[BaseColumn] | None
-    constraints: Constraints | None
+    columns: list[BaseColumn] | None = None
+    constraints: Constraints | None = None
 
 
 class TableObject(BaseModel):
@@ -249,7 +254,7 @@ class TableServiceObject(Table):
     def get_records_as_csv(
         self,
         timezone_offset: int | None = None,
-    ) -> dict:
+    ) -> None:
         path = f"/{self.service.tag}/{self.name}/records/csv"
 
         query_params = self.service.create_input_dict(
@@ -257,7 +262,7 @@ class TableServiceObject(Table):
             timezone_offset=timezone_offset,
         )
 
-        return self.service.client.request(
+        self.service.client.request(
             method="get", path=path, query_params=query_params, stream=True
         )
 
