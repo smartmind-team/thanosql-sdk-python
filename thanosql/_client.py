@@ -6,8 +6,8 @@ from thanosql import resources
 from thanosql._base_client import ThanoSQLBaseClient
 
 API_TOKEN: str = os.environ.get("API_TOKEN", "")
-API_VERSION: str = os.environ.get("API_VERSION", "v1")
 ENGINE_URL: str = os.environ.get("ENGINE_URL", "")
+API_VERSION: str = "v1"
 
 
 class ThanoSQL(ThanoSQLBaseClient):
