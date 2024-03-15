@@ -96,7 +96,7 @@ class QueryTemplateService(ThanoSQLService):
 
         return self.client.request(method="get", path=path, query_params=query_params)
 
-    def create(self, name: str, query: str, dry_run: bool | None = None) -> dict:
+    def create(self, name: str | None = None, query: str | None = None, dry_run: bool | None = None) -> dict:
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self.create_input_dict(dry_run=dry_run)
         payload = self.create_input_dict(name=name, query=query)
