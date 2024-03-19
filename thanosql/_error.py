@@ -1,17 +1,13 @@
 class ThanoSQLError(Exception):
-    message: str | None
-    json_body: object | None
-    code: str | None
-
     def __init__(
         self,
         message: str | None = None,
         json_body: object | None = None,
         code: str | None = None,
     ):
-        self.message = message
-        self.json_body = json_body
-        self.code = code
+        self.message: str | None = message
+        self.json_body: object | None = json_body
+        self.code: str | None = code
 
     def __str__(self):
         msg = self.message or "<empty message>"

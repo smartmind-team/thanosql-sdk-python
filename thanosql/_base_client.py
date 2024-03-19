@@ -13,22 +13,17 @@ if TYPE_CHECKING:
 
 
 class ThanoSQLBaseClient:
-    base_url: str
-    url: str
-    version: str
-    token: str
-
     def __init__(self, base_url: str, version: str, token: str) -> None:
-        self.base_url = base_url.strip("/")
-        self.version = version
-        self.token = token
+        self.base_url: str = base_url.strip("/")
+        self.version: str = version
+        self.token: str = token
 
-        self.url = f"{self.base_url}/api/{version}"
+        self.url: str = f"{self.base_url}/api/{version}"
 
-    def create_auth_header(self) -> dict:
+    def _create_auth_header(self) -> dict:
         return {"Authorization": f"Bearer {self.token}"}
 
-    def create_full_url(
+    def _create_full_url(
         self,
         path: str = "",
         path_params: dict | None = None,
@@ -49,7 +44,7 @@ class ThanoSQLBaseClient:
 
         return url
 
-    def request(
+    def _request(
         self,
         method: str,
         path: str,
@@ -59,11 +54,11 @@ class ThanoSQLBaseClient:
         file: FileName | None = None,
         stream: bool = False,
     ) -> Any:
-        full_url = self.create_full_url(
+        full_url = self._create_full_url(
             path=path, path_params=path_params, query_params=query_params
         )
 
-        headers = self.create_auth_header()
+        headers = self._create_auth_header()
         headers["accept"] = "application/json"
 
         payload_json = {}

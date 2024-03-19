@@ -15,9 +15,9 @@ class SchemaService(ThanoSQLService):
     def list(self) -> dict:
         path = f"/{self.tag}/"
 
-        return self.client.request(method="get", path=path)
+        return self.client._request(method="get", path=path)
 
     def create(self, name: str) -> dict:
         path = f"/{self.tag}/{name}"
 
-        return self.client.request(method="post", path=path)
+        return self.client._request(method="post", path=path)

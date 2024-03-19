@@ -14,12 +14,10 @@ if TYPE_CHECKING:
 
 
 class TableService(ThanoSQLService):
-    template: TableTemplateService
-
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="table")
 
-        self.template = TableTemplateService(client)
+        self.template: TableTemplateService = TableTemplateService(client)
 
     def list(
         self,
@@ -29,17 +27,17 @@ class TableService(ThanoSQLService):
         limit: int | None = None,
     ) -> dict:
         path = f"/{self.tag}/"
-        query_params = self.create_input_dict(
+        query_params = self._create_input_dict(
             schema=schema, verbose=verbose, offset=offset, limit=limit
         )
 
-        return self.client.request(method="get", path=path, query_params=query_params)
+        return self.client._request(method="get", path=path, query_params=query_params)
 
     def get(self, name: str, schema: str | None = None) -> TableServiceObject | dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(schema=schema)
+        query_params = self._create_input_dict(schema=schema)
 
-        raw_response = self.client.request(
+        raw_response = self.client._request(
             method="get", path=path, query_params=query_params
         )
 
@@ -57,10 +55,10 @@ class TableService(ThanoSQLService):
         self, name: str, schema: str | None = None, table: Table | None = None
     ) -> dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(schema=schema)
-        payload = self.create_input_dict(table=table)
+        query_params = self._create_input_dict(schema=schema)
+        payload = self._create_input_dict(table=table)
 
-        return self.client.request(
+        return self.client._request(
             method="put", path=path, query_params=query_params, payload=payload
         )
 
@@ -68,10 +66,10 @@ class TableService(ThanoSQLService):
         self, name: str, schema: str | None = None, table: TableObject | None = None
     ) -> dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(schema=schema)
-        payload = self.create_input_dict(table=table)
+        query_params = self._create_input_dict(schema=schema)
+        payload = self._create_input_dict(table=table)
 
-        return self.client.request(
+        return self.client._request(
             method="post", path=path, query_params=query_params, payload=payload
         )
 
@@ -103,10 +101,10 @@ class TableService(ThanoSQLService):
                 "Invalid format: only CSV and Excel files possible."
             )
 
-        query_params = self.create_input_dict(schema=schema, if_exists=if_exists)
-        payload = self.create_input_dict(table=table)
+        query_params = self._create_input_dict(schema=schema, if_exists=if_exists)
+        payload = self._create_input_dict(table=table)
 
-        return self.client.request(
+        return self.client._request(
             method="post",
             path=path,
             query_params=query_params,
@@ -116,9 +114,9 @@ class TableService(ThanoSQLService):
 
     def delete(self, name: str, schema: str | None = None) -> dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(schema=schema)
+        query_params = self._create_input_dict(schema=schema)
 
-        return self.client.request(
+        return self.client._request(
             method="delete", path=path, query_params=query_params
         )
 
@@ -134,19 +132,19 @@ class TableTemplateService(ThanoSQLService):
         latest: bool | None = None,
     ) -> dict:
         path = f"/{self.tag}/"
-        query_params = self.create_input_dict(
+        query_params = self._create_input_dict(
             search=search,
             order_by=order_by,
             latest=latest,
         )
 
-        return self.client.request(method="get", path=path, query_params=query_params)
+        return self.client._request(method="get", path=path, query_params=query_params)
 
     def get(self, name: str, version: str | None = None) -> dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(version=version)
+        query_params = self._create_input_dict(version=version)
 
-        return self.client.request(method="get", path=path, query_params=query_params)
+        return self.client._request(method="get", path=path, query_params=query_params)
 
     def create(
         self,
@@ -156,19 +154,19 @@ class TableTemplateService(ThanoSQLService):
         compatibility: str | None = None,
     ) -> dict:
         path = f"/{self.tag}/{name}"
-        payload = self.create_input_dict(
+        payload = self._create_input_dict(
             table_template=vars(table_template),
             version=version,
             compatibility=compatibility,
         )
 
-        return self.client.request(method="post", path=path, payload=payload)
+        return self.client._request(method="post", path=path, payload=payload)
 
     def delete(self, name: str, version: str | None = None) -> dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(version=version)
+        query_params = self._create_input_dict(version=version)
 
-        return self.client.request(
+        return self.client._request(
             method="delete", path=path, query_params=query_params
         )
 
@@ -245,7 +243,7 @@ class TableServiceObject(Table):
             limit=limit,
         )
 
-        return self.service.client.request(
+        return self.service.client._request(
             method="get",
             path=path,
             query_params=query_params,
@@ -262,7 +260,7 @@ class TableServiceObject(Table):
             timezone_offset=timezone_offset,
         )
 
-        self.service.client.request(
+        self.service.client._request(
             method="get", path=path, query_params=query_params, stream=True
         )
 
@@ -273,6 +271,6 @@ class TableServiceObject(Table):
         path = f"/{self.service.tag}/{self.name}/records"
         query_params = self.service.create_input_dict(schema=self.table_schema)
 
-        return self.service.client.request(
+        return self.service.client._request(
             method="post", path=path, query_params=query_params, payload=records
         )

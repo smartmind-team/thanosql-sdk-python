@@ -18,9 +18,9 @@ class FileService(ThanoSQLService):
 
     def list(self, path: FileName) -> dict:
         api_path = f"/{self.tag}/"
-        query_params = self.create_input_dict(file_path=path)
+        query_params = self._create_input_dict(file_path=path)
 
-        return self.client.request(
+        return self.client._request(
             method="get", path=api_path, query_params=query_params
         )
 
@@ -33,11 +33,11 @@ class FileService(ThanoSQLService):
         dir: str | None = None,
     ) -> dict:
         api_path = f"/{self.tag}/"
-        query_params = self.create_input_dict(
+        query_params = self._create_input_dict(
             db_commit=db_commit, table_name=table, column_name=column, dir=dir
         )
 
-        return self.client.request(
+        return self.client._request(
             method="post", path=api_path, query_params=query_params, file=path
         )
 
@@ -49,10 +49,10 @@ class FileService(ThanoSQLService):
         column: str | None = None,
     ) -> dict:
         api_path = f"/{self.tag}/"
-        query_params = self.create_input_dict(
+        query_params = self._create_input_dict(
             file_path=path, db_commit=db_commit, table_name=table, column_name=column
         )
 
-        return self.client.request(
+        return self.client._request(
             method="delete", path=api_path, query_params=query_params
         )

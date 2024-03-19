@@ -20,25 +20,25 @@ class ViewService(ThanoSQLService):
         limit: int | None = None,
     ) -> dict:
         path = f"/{self.tag}/"
-        query_params = self.create_input_dict(
+        query_params = self._create_input_dict(
             schema=schema,
             verbose=verbose,
             offset=offset,
             limit=limit,
         )
 
-        return self.client.request(method="get", path=path, query_params=query_params)
+        return self.client._request(method="get", path=path, query_params=query_params)
 
     def get(self, name: str, schema: str | None = None) -> dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(schema=schema)
+        query_params = self._create_input_dict(schema=schema)
 
-        return self.client.request(method="get", path=path, query_params=query_params)
+        return self.client._request(method="get", path=path, query_params=query_params)
 
     def delete(self, name: str, schema: str | None = None) -> dict:
         path = f"/{self.tag}/{name}"
-        query_params = self.create_input_dict(schema=schema)
+        query_params = self._create_input_dict(schema=schema)
 
-        return self.client.request(
+        return self.client._request(
             method="delete", path=path, query_params=query_params
         )

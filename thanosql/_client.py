@@ -11,12 +11,6 @@ API_VERSION: str = "v1"
 
 
 class ThanoSQL(ThanoSQLBaseClient):
-    file: resources.FileService
-    query: resources.QueryService
-    schema: resources.SchemaService
-    table: resources.TableService
-    view: resources.ViewService
-
     def __init__(
         self,
         engine_url: str = ENGINE_URL,
@@ -25,8 +19,8 @@ class ThanoSQL(ThanoSQLBaseClient):
     ) -> None:
         super().__init__(base_url=engine_url, version=api_version, token=api_token)
 
-        self.file = resources.FileService(self)
-        self.query = resources.QueryService(self)
-        self.schema = resources.SchemaService(self)
-        self.table = resources.TableService(self)
-        self.view = resources.ViewService(self)
+        self.file: resources.FileService = resources.FileService(self)
+        self.query: resources.QueryService = resources.QueryService(self)
+        self.schema: resources.SchemaService = resources.SchemaService(self)
+        self.table: resources.TableService = resources.TableService(self)
+        self.view: resources.ViewService = resources.ViewService(self)
