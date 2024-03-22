@@ -33,7 +33,7 @@ class TableService(ThanoSQLService):
 
         return self.client._request(method="get", path=path, query_params=query_params)
 
-    def get(self, name: str, schema: str | None = None) -> TableServiceObject | dict:
+    def get(self, name: str, schema: str | None = None) -> Table | dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
@@ -42,7 +42,7 @@ class TableService(ThanoSQLService):
         )
 
         if "table" in raw_response:
-            table_service_adapter = TypeAdapter(TableServiceObject)
+            table_service_adapter = TypeAdapter(Table)
             parsed_response = table_service_adapter.validate_python(
                 raw_response["table"]
             )
@@ -52,7 +52,7 @@ class TableService(ThanoSQLService):
         return raw_response
 
     def update(
-        self, name: str, schema: str | None = None, table: Table | None = None
+        self, name: str, schema: str | None = None, table: BaseTable | None = None
     ) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -213,9 +213,6 @@ class Constraints(BaseModel):
 class BaseTable(BaseModel):
     name: str | None = None
     table_schema: str | None = Field(alias="schema", default=None)
-
-
-class Table(BaseTable):
     columns: list[BaseColumn] | None = None
     constraints: Constraints | None = None
 
@@ -225,7 +222,7 @@ class TableObject(BaseModel):
     constraints: Constraints | None = None
 
 
-class TableServiceObject(Table):
+class Table(BaseTable):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     service: TableService | None = None
@@ -237,7 +234,7 @@ class TableServiceObject(Table):
     ) -> dict:
         path = f"/{self.service.tag}/{self.name}/records"
 
-        query_params = self.service.create_input_dict(
+        query_params = self.service._create_input_dict(
             schema=self.table_schema,
             offset=offset,
             limit=limit,
@@ -255,7 +252,7 @@ class TableServiceObject(Table):
     ) -> None:
         path = f"/{self.service.tag}/{self.name}/records/csv"
 
-        query_params = self.service.create_input_dict(
+        query_params = self.service._create_input_dict(
             schema=self.table_schema,
             timezone_offset=timezone_offset,
         )
@@ -269,7 +266,7 @@ class TableServiceObject(Table):
         records: list[dict],
     ) -> dict:
         path = f"/{self.service.tag}/{self.name}/records"
-        query_params = self.service.create_input_dict(schema=self.table_schema)
+        query_params = self.service._create_input_dict(schema=self.table_schema)
 
         return self.service.client._request(
             method="post", path=path, query_params=query_params, payload=records

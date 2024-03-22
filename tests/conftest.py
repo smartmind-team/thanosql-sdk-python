@@ -12,7 +12,7 @@ from tests.utils.table import (
 )
 from thanosql._client import ThanoSQL
 from thanosql._error import ThanoSQLNotFoundError
-from thanosql.resources import BaseColumn, TableObject, TableServiceObject
+from thanosql.resources import BaseColumn, Table, TableObject
 
 basic_table_columns = [("integer", "id"), ("varchar", "name"), ("integer", "price")]
 basic_view_columns = [basic_table_columns[0][1], basic_table_columns[1][1]]
@@ -34,7 +34,7 @@ def new_schema(client: ThanoSQL) -> str:
 
 
 @pytest.fixture(scope="module")
-def empty_table(client: ThanoSQL) -> TableServiceObject:
+def empty_table(client: ThanoSQL) -> Table:
     name = f"test_empty_table_{fake.unique.pystr(8).lower()}"
     yield create_table(client=client, name=name, schema="public", table=TableObject())
     try:
@@ -44,7 +44,7 @@ def empty_table(client: ThanoSQL) -> TableServiceObject:
 
 
 @pytest.fixture(scope="module")
-def basic_table(client: ThanoSQL) -> TableServiceObject:
+def basic_table(client: ThanoSQL) -> Table:
     table_object = TableObject(
         columns=[BaseColumn(type=col[0], name=col[1]) for col in basic_table_columns]
     )
@@ -57,12 +57,12 @@ def basic_table(client: ThanoSQL) -> TableServiceObject:
 
 
 @pytest.fixture(scope="module")
-def empty_table_name(empty_table: TableServiceObject) -> str:
+def empty_table_name(empty_table: Table) -> str:
     return empty_table.name
 
 
 @pytest.fixture(scope="module")
-def basic_table_name(basic_table: TableServiceObject) -> str:
+def basic_table_name(basic_table: Table) -> str:
     return basic_table.name
 
 

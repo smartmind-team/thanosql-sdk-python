@@ -1,5 +1,5 @@
 from thanosql._client import ThanoSQL
-from thanosql.resources import TableObject, TableServiceObject
+from thanosql.resources import Table, TableObject
 
 
 def create_schema(client: ThanoSQL, name: str) -> str:
@@ -17,7 +17,7 @@ def create_table(
     name: str,
     schema: str | None = None,
     table: TableObject | None = None,
-) -> TableServiceObject:
+) -> Table:
     res = client.table.create(name=name, schema=schema, table=table)
     res = client.table.get(name=name, schema=schema)
     return res

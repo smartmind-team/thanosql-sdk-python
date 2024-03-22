@@ -104,7 +104,7 @@ client.table.template.create(name*, table_template*, version, compatibility)
 client.table.template.delete(name*, version)
 ```
 
-In order to create a table or table template object, some classes need to be imported in addition to the client. Refer to the example for table and table template APIs for more detail. Furthermore, while most of the methods return a dictionary object, `client.table.get()` return a `TableServiceObject`, which is required to access the record entries of a certain table.
+In order to create a table or table template object, some classes need to be imported in addition to the client. Refer to the example for table and table template APIs for more detail. Furthermore, while most of the methods return a dictionary object, `client.table.get()` return a `Table` object, which is required to access the record entries of a certain table.
 
 ```python
 my_table = client.table.get(name=my_table_name)

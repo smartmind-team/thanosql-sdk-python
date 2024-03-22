@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import os
 
-from thanosql import resources
 from thanosql._base_client import ThanoSQLBaseClient
+from thanosql.resources import (
+    FileService,
+    QueryService,
+    SchemaService,
+    TableService,
+    ViewService,
+)
 
 API_TOKEN: str = os.environ.get("API_TOKEN", "")
 ENGINE_URL: str = os.environ.get("ENGINE_URL", "")
@@ -19,8 +25,8 @@ class ThanoSQL(ThanoSQLBaseClient):
     ) -> None:
         super().__init__(base_url=engine_url, version=api_version, token=api_token)
 
-        self.file: resources.FileService = resources.FileService(self)
-        self.query: resources.QueryService = resources.QueryService(self)
-        self.schema: resources.SchemaService = resources.SchemaService(self)
-        self.table: resources.TableService = resources.TableService(self)
-        self.view: resources.ViewService = resources.ViewService(self)
+        self.file: FileService = FileService(self)
+        self.query: QueryService = QueryService(self)
+        self.schema: SchemaService = SchemaService(self)
+        self.table: TableService = TableService(self)
+        self.view: ViewService = ViewService(self)

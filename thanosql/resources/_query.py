@@ -49,7 +49,7 @@ class QueryService(ThanoSQLService):
 
 class QueryLogService(ThanoSQLService):
     """Cannot exist without a parent QueryService"""
-    
+
     def __init__(self, query: QueryService) -> None:
         super().__init__(client=query.client, tag="log")
 
@@ -62,7 +62,9 @@ class QueryLogService(ThanoSQLService):
         limit: int | None = None,
     ) -> dict:
         path = f"/{self.query.tag}/{self.tag}"
-        query_params = self._create_input_dict(search=search, offset=offset, limit=limit)
+        query_params = self._create_input_dict(
+            search=search, offset=offset, limit=limit
+        )
 
         return self.client._request(method="get", path=path, query_params=query_params)
 

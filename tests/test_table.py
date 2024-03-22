@@ -15,11 +15,11 @@ from thanosql._error import (
 )
 from thanosql.resources import (
     BaseColumn,
+    BaseTable,
     Constraints,
     PrimaryKey,
     Table,
     TableObject,
-    TableServiceObject,
 )
 
 if TYPE_CHECKING:
@@ -41,7 +41,7 @@ def test_get_table_not_found(client: ThanoSQL):
 def test_get_table_success(client: ThanoSQL, name: str, request: FixtureRequest):
     name = request.getfixturevalue(name)
     res = client.table.get(name=name)
-    assert isinstance(res, TableServiceObject)
+    assert isinstance(res, Table)
     assert res.name == name
 
 
@@ -94,7 +94,7 @@ def test_get_tables_with_options(client: ThanoSQL, new_schema: str):
 
 
 def test_update_table(client: ThanoSQL, new_schema: str):
-    table_object = Table(
+    table_object = BaseTable(
         name=test_table_name,
         schema="public",
         columns=[BaseColumn(type="integer", name="number")],
@@ -122,7 +122,7 @@ def test_update_table(client: ThanoSQL, new_schema: str):
     assert res.constraints.primary_key.columns == ["number"]
 
     # move the object back to new_schema for testing
-    table_object = Table(schema=new_schema)
+    table_object = BaseTable(schema=new_schema)
     res = client.table.update(name=test_table_name, table=table_object)
     res = client.table.get(name=test_table_name, schema=new_schema)
     assert res.name == test_table_name
