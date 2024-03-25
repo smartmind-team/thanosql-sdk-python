@@ -1,6 +1,6 @@
 # ThanoSQL Python Library
 
-The ThanoSQL Python library provides convenient access to the ThanoSQL API from any Python 3.10+ application. The library covers all ThanoSQL operations that users can do, such as querying, editing tables, and much more.
+The ThanoSQL Python library provides convenient access to the ThanoSQL API from any Python 3.8+ application. The library covers all ThanoSQL operations that users can do, such as querying, editing tables, and much more.
 
 ## Usage
 
@@ -10,7 +10,7 @@ In order to use the library, first clone this repository.
 git clone https://github.com/smartmind-team/thanosql-sdk-python.git
 ```
 
-Before starting with the SDK, install all the requirements. While not necessary, using a virtual environment, such as `virtualenv` or `venv` is highly recommended to avoid package conflicts. Note that the Python version used during development is 3.10.13.
+Before starting with the SDK, install all the requirements. While not necessary, using a virtual environment, such as `virtualenv` or `venv` is highly recommended to avoid package conflicts. Note that the Python version used during development is 3.8.16.
 
 ```bash
 python -m venv {path_to_virtual_environment}
@@ -32,7 +32,7 @@ In the root directory of the repository, create a new Python or IPython notebook
 
 from thanosql import ThanoSQL
 
-client = ThanoSQL()
+client = ThanoSQL(api_token=THANOSQL_API_VERSION, engine_url=THANOSQL_ENGINE_URL)
 
 res = client.table.list()
 
@@ -104,7 +104,7 @@ client.table.template.create(name*, table_template*, version, compatibility)
 client.table.template.delete(name*, version)
 ```
 
-In order to create a table or table template object, some classes need to be imported in addition to the client. Refer to the example for table and table template APIs for more detail. Furthermore, while most of the methods return a dictionary object, `client.table.get()` return a `Table` object, which is required to access the record entries of a certain table.
+In order to create a table or table template object, some classes need to be imported in addition to the client. Refer to the example for table and table template APIs for more detail. `client.table.get()` return a `Table` object, which is required to access the record entries of a certain table.
 
 ```python
 my_table = client.table.get(name=my_table_name)
