@@ -11,17 +11,17 @@ from thanosql.resources import (
     ViewService,
 )
 
-API_TOKEN: str = os.environ.get("API_TOKEN", "")
-ENGINE_URL: str = os.environ.get("ENGINE_URL", "")
-API_VERSION: str = "v1"
+THANOSQL_API_TOKEN: str = os.environ.get("THANOSQL_API_TOKEN", "")
+THANOSQL_ENGINE_URL: str = os.environ.get("THANOSQL_ENGINE_URL", "")
+THANOSQL_API_VERSION: str = "v1"
 
 
 class ThanoSQL(ThanoSQLBaseClient):
     def __init__(
         self,
-        engine_url: str = ENGINE_URL,
-        api_version: str = API_VERSION,
-        api_token: str = API_TOKEN,
+        engine_url: str = THANOSQL_ENGINE_URL,
+        api_version: str = THANOSQL_API_VERSION,
+        api_token: str = THANOSQL_API_TOKEN,
     ) -> None:
         super().__init__(base_url=engine_url, version=api_version, token=api_token)
 

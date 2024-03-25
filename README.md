@@ -21,8 +21,8 @@ pip install -r requirements.txt  # use requirements-test.txt instead if you want
 Next, configure the required environment variables. A working workspace engine is required. If you are running a Python script through a terminal, use `export`.
 
 ```bash
-export API_TOKEN={your_engine_api_token}
-export ENGINE_URL={your_engine_url}
+export THANOSQL_API_TOKEN={your_engine_api_token}
+export THANOSQL_ENGINE_URL={your_engine_url}
 ```
 
 In the root directory of the repository, create a new Python or IPython notebook file, and optionally add the filename to `.gitignore`. Files beginning with `trial` are ignored by default. For practical purposes, assume that a Python file called `trial.py` is used. Import the `thanosql` package, create a `ThanoSQL` client, and you can use all the functions in the library. In the example below, we will use the library to show all tables in the workspace. For more examples, head over to the `examples/` directory.
