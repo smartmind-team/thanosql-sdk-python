@@ -1,11 +1,29 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from datetime import datetime
+from typing import Optional, TYPE_CHECKING
+
+from pydantic import BaseModel, TypeAdapter
 
 from thanosql._service import ThanoSQLService
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
+
+
+class QueryLog(BaseModel):
+    query_id: Optional[str]
+    statement_type: Optional[str]
+    start_time: Optional[datetime]
+    end_time: Optional[datetime]
+    query: str
+    referer: str
+    state: Optional[str]
+    destination_table_name: Optional[str]
+    destination_schema: Optional[str]
+    error_result: Optional[str]
+    created_at: Optional[datetime]
+    records: Optional[list]
 
 
 class QueryService(ThanoSQLService):
@@ -26,7 +44,7 @@ class QueryService(ThanoSQLService):
         table_name: str | None = None,
         overwrite: bool | None = None,
         max_results: int | None = None,
-    ) -> dict:
+    ) -> QueryLog | dict:
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema,
@@ -42,9 +60,16 @@ class QueryService(ThanoSQLService):
             parameters=parameters,
         )
 
-        return self.client._request(
+        raw_response = self.client._request(
             method="post", path=path, query_params=query_params, payload=payload
         )
+        
+        if "query_id" in raw_response:
+            query_log_adapter = TypeAdapter(QueryLog)
+            parsed_response = query_log_adapter.validate_python(raw_response)
+            return parsed_response
+
+        return raw_response
 
 
 class QueryLogService(ThanoSQLService):
@@ -66,7 +91,27 @@ class QueryLogService(ThanoSQLService):
             search=search, offset=offset, limit=limit
         )
 
-        return self.client._request(method="get", path=path, query_params=query_params)
+        raw_response = self.client._request(method="get", path=path, query_params=query_params)
+        
+        if "query_logs" in raw_response:
+            query_logs_adapter = TypeAdapter(list[QueryLog])
+            parsed_response = {}
+            parsed_response["query_logs"] = query_logs_adapter.validate_python(
+                raw_response["query_logs"]
+            )
+            parsed_response["total"] = raw_response["total"]
+            return parsed_response
+        
+        return raw_response
+
+
+class QueryTemplate(BaseModel):
+    id: Optional[int] = None
+    name: str
+    query: str
+    parameters: Optional[list[str]] = []
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 
 class QueryTemplateService(ThanoSQLService):
@@ -83,40 +128,76 @@ class QueryTemplateService(ThanoSQLService):
         offset: int | None = None,
         limit: int | None = None,
         order_by: str | None = None,
-    ) -> dict:
+    ) -> list[QueryTemplate] | dict:
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
             search=search, offset=offset, limit=limit, order_by=order_by
         )
 
-        return self.client._request(method="get", path=path, query_params=query_params)
+        raw_response = self.client._request(method="get", path=path, query_params=query_params)
+        
+        if "query_templates" in raw_response:
+            query_templates_adapter = TypeAdapter(list[QueryTemplate])
+            parsed_response = query_templates_adapter.validate_python(
+                raw_response["query_templates"]
+            )
+            return parsed_response
+        
+        return raw_response
 
     def create(
         self,
         name: str | None = None,
         query: str | None = None,
         dry_run: bool | None = None,
-    ) -> dict:
+    ) -> QueryTemplate | dict:
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(dry_run=dry_run)
         payload = self._create_input_dict(name=name, query=query)
 
-        return self.client._request(
+        raw_response = self.client._request(
             method="post", path=path, query_params=query_params, payload=payload
         )
+        
+        if "query_template" in raw_response:
+            query_template_adapter = TypeAdapter(QueryTemplate)
+            parsed_response = query_template_adapter.validate_python(
+                raw_response["query_template"]
+            )
+            return parsed_response
+        
+        return raw_response
 
-    def get(self, name: str) -> dict:
+    def get(self, name: str) -> QueryTemplate | dict:
         path = f"/{self.query.tag}/{self.tag}/{name}"
 
-        return self.client._request(method="get", path=path)
+        raw_response = self.client._request(method="get", path=path)
+    
+        if "query_template" in raw_response:
+            query_template_adapter = TypeAdapter(QueryTemplate)
+            parsed_response = query_template_adapter.validate_python(
+                raw_response["query_template"]
+            )
+            return parsed_response
+        
+        return raw_response
 
     def update(
         self, current_name: str, new_name: str | None = None, query: str | None = None
-    ) -> dict:
+    ) -> QueryTemplate | dict:
         path = f"/{self.query.tag}/{self.tag}/{current_name}"
         payload = self._create_input_dict(name=new_name, query=query)
 
-        return self.client._request(method="put", path=path, payload=payload)
+        raw_response = self.client._request(method="put", path=path, payload=payload)
+        
+        if "query_template" in raw_response:
+            query_template_adapter = TypeAdapter(QueryTemplate)
+            parsed_response = query_template_adapter.validate_python(
+                raw_response["query_template"]
+            )
+            return parsed_response
+        
+        return raw_response
 
     def delete(self, name: str) -> dict:
         path = f"/{self.query.tag}/{self.tag}/{name}"

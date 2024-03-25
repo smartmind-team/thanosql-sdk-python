@@ -12,7 +12,7 @@ from tests.utils.table import (
 )
 from thanosql._client import ThanoSQL
 from thanosql._error import ThanoSQLNotFoundError
-from thanosql.resources import BaseColumn, Table, TableObject
+from thanosql.resources import BaseColumn, Table, TableObject, View
 
 basic_table_columns = [("integer", "id"), ("varchar", "name"), ("integer", "price")]
 basic_view_columns = [basic_table_columns[0][1], basic_table_columns[1][1]]
@@ -82,7 +82,7 @@ def empty_table_template_name(empty_table_template: dict) -> str:
 
 
 @pytest.fixture(scope="module")
-def empty_view(client: ThanoSQL, empty_table_name: str) -> dict:
+def empty_view(client: ThanoSQL, empty_table_name: str) -> View:
     name = f"test_empty_view_{fake.unique.pystr(8).lower()}"
     yield create_view(
         client=client, name=name, column_names="*", table_name=empty_table_name
@@ -94,7 +94,7 @@ def empty_view(client: ThanoSQL, empty_table_name: str) -> dict:
 
 
 @pytest.fixture(scope="module")
-def basic_view(client: ThanoSQL, basic_table_name: str) -> dict:
+def basic_view(client: ThanoSQL, basic_table_name: str) -> View:
     name = f"test_basic_view_{fake.unique.pystr(8).lower()}"
     yield create_view(
         client=client,
@@ -109,10 +109,10 @@ def basic_view(client: ThanoSQL, basic_table_name: str) -> dict:
 
 
 @pytest.fixture(scope="module")
-def empty_view_name(empty_view: dict) -> str:
-    return empty_view["name"]
+def empty_view_name(empty_view: View) -> str:
+    return empty_view.name
 
 
 @pytest.fixture(scope="module")
-def basic_view_name(basic_view: dict) -> str:
-    return basic_view["name"]
+def basic_view_name(basic_view: View) -> str:
+    return basic_view.name

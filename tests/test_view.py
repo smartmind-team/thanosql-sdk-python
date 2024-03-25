@@ -6,6 +6,7 @@ import pytest
 
 from tests.faker import fake
 from thanosql._error import ThanoSQLNotFoundError
+from thanosql.resources import View
 
 if TYPE_CHECKING:
     from _pytest.fixtures import FixtureRequest
@@ -15,8 +16,7 @@ if TYPE_CHECKING:
 
 def test_get_views_success(client: ThanoSQL):
     res = client.view.list()
-    assert isinstance(res, dict)
-    assert "views" in res
+    assert isinstance(res, list)
 
 
 def test_get_views_nonexistent_schema(client: ThanoSQL):
@@ -26,21 +26,18 @@ def test_get_views_nonexistent_schema(client: ThanoSQL):
 
 def test_get_views_limit(client: ThanoSQL, empty_view: dict, basic_view: dict):
     res = client.view.list(limit=2)
-    assert isinstance(res, dict)
-    assert "views" in res
+    assert isinstance(res, list)
 
     # at least empty_view and basic_view, at most 2 because of the limit
-    assert len(res["views"]) == 2
+    assert len(res) == 2
 
 
 @pytest.mark.parametrize("name", ["empty_view_name", "basic_view_name"])
 def test_get_view_success(client: ThanoSQL, name: str, request: FixtureRequest):
     name = request.getfixturevalue(name)
     res = client.view.get(name=name)
-    assert isinstance(res, dict)
-    assert "view" in res
-    assert {"name", "schema", "columns", "definition"} == set(res["view"].keys())
-    assert res["view"]["name"] == name
+    assert isinstance(res, View)
+    assert res.name == name
 
 
 def test_get_view_nonexistent(client: ThanoSQL):

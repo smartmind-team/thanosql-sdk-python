@@ -10,6 +10,7 @@ from thanosql._error import (
     ThanoSQLNotFoundError,
     ThanoSQLValueError,
 )
+from thanosql.resources import QueryLog, QueryTemplate
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -34,21 +35,6 @@ query_test_table_name = (
 )
 query_test_selected_columns = ["name", "price"]
 
-query_log_keys = {
-    "query_id",
-    "statement_type",
-    "start_time",
-    "end_time",
-    "query",
-    "referer",
-    "state",
-    "destination_table_name",
-    "destination_schema",
-    "error_result",
-    "created_at",
-    "records",
-}
-
 
 def test_create_query_template_invalid(client: ThanoSQL):
     # name too long
@@ -64,11 +50,11 @@ def test_create_query_template_success(client: ThanoSQL):
     # execute with dry run without any name or query (empty request)
     # check whether auto-naming is working
     res = client.query.template.create(dry_run=True)
-    assert {"name", "query", "parameters"} == set(res["query_template"])
-    assert res["query_template"]["query"] == ""
-    assert len(res["query_template"]["parameters"]) == 0
+    assert isinstance(res, QueryTemplate)
+    assert res.query == ""
+    assert len(res.parameters) == 0
 
-    temp_name = res["query_template"]["name"]
+    temp_name = res.name
     assert temp_name.startswith("query_template_")
 
     # make sure it is not saved in db
@@ -79,20 +65,18 @@ def test_create_query_template_success(client: ThanoSQL):
     res = client.query.template.create(
         name=plain_query_template_name, query=plain_query_template_string
     )
-    assert {"id", "name", "query", "parameters", "created_at", "updated_at"} == set(
-        res["query_template"]
-    )
-    assert res["query_template"]["id"] != 0
-    assert res["query_template"]["name"] == plain_query_template_name
-    assert res["query_template"]["query"] == plain_query_template_string
-    assert len(res["query_template"]["parameters"]) == 0
+    assert isinstance(res, QueryTemplate)
+    assert res.id != 0
+    assert res.name == plain_query_template_name
+    assert res.query == plain_query_template_string
+    assert len(res.parameters) == 0
 
     # no need to do thorough checks as we already did in the previous template
     res = client.query.template.create(
         name=basic_query_template_name, query=basic_query_template_string
     )
-    assert res["query_template"]["query"] == basic_query_template_string
-    assert res["query_template"]["parameters"] == ["table_name"]
+    assert res.query == basic_query_template_string
+    assert res.parameters == ["table_name"]
 
     # make sure we cannot create templates with the same name again
     with pytest.raises(ThanoSQLAlreadyExistsError):
@@ -115,16 +99,15 @@ def test_get_query_template_not_found(client: ThanoSQL):
 def test_get_query_template_success(client: ThanoSQL, name: str):
     # test whether get is working and whether the template creation is successful
     res = client.query.template.get(name=name)
-    assert {"id", "name", "query", "parameters", "created_at", "updated_at"} == set(
-        res["query_template"]
-    )
+    assert isinstance(res, QueryTemplate)
 
 
 def test_get_query_templates_default(client: ThanoSQL):
     res = client.query.template.list()
-    assert "query_templates" in res
+    assert isinstance(res, list)
     # at least the two templates we just created
-    assert len(res["query_templates"]) >= 2
+    assert len(res) >= 2
+    assert isinstance(res[0], QueryTemplate)
 
 
 def test_update_query_template_invalid(client: ThanoSQL):
@@ -160,27 +143,25 @@ def test_update_query_template_success(client: ThanoSQL):
     res = client.query.template.update(
         current_name=plain_query_template_name, new_name=changed_query_template_name
     )
-    assert res["query_template"]["name"] == changed_query_template_name
-    assert res["query_template"]["query"] == plain_query_template_string
-    assert len(res["query_template"]["parameters"]) == 0
+    assert res.name == changed_query_template_name
+    assert res.query == plain_query_template_string
+    assert len(res.parameters) == 0
 
     # make sure the new name is callable while the old name is not
     with pytest.raises(ThanoSQLNotFoundError):
         client.query.template.get(name=plain_query_template_name)
 
     res = client.query.template.get(name=changed_query_template_name)
-    assert {"id", "name", "query", "parameters", "created_at", "updated_at"} == set(
-        res["query_template"]
-    )
+    assert isinstance(res, QueryTemplate)
 
     # update query only
     # make sure the name is not changed but query and parameters got changed
     res = client.query.template.update(
         current_name=basic_query_template_name, query=changed_query_template_string
     )
-    assert res["query_template"]["name"] == basic_query_template_name
-    assert res["query_template"]["query"] == changed_query_template_string
-    assert set(res["query_template"]["parameters"]) == {"columns", "table_name"}
+    assert res.name == basic_query_template_name
+    assert res.query == changed_query_template_string
+    assert set(res.parameters) == {"columns", "table_name"}
 
 
 def test_get_query_logs_default(client: ThanoSQL):
@@ -232,13 +213,13 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
 
     # direct entry template
     res = client.query.execute(query=changed_query_template_string, parameters=params)
-    assert set(res.keys()) == query_log_keys
-    assert res["error_result"] is None
-    assert res["destination_schema"] == "qm"
-    assert res["query"] == completed_changed_query
+    assert isinstance(res, QueryLog)
+    assert res.error_result is None
+    assert res.destination_schema == "qm"
+    assert res.query == completed_changed_query
 
     # make sure the qm table is created
-    qm_table_name = res["destination_table_name"]
+    qm_table_name = res.destination_table_name
     res = client.table.get(name=qm_table_name, schema="qm")
     assert res
 
@@ -246,11 +227,11 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     res = client.query.execute(
         query=plain_query_template_string, table_name=query_test_table_name
     )
-    assert set(res.keys()) == query_log_keys
-    assert res["error_result"] is None
-    assert res["destination_schema"] == "public"
-    assert res["query"] == plain_query_template_string
-    assert res["destination_table_name"] == query_test_table_name
+    assert isinstance(res, QueryLog)
+    assert res.error_result is None
+    assert res.destination_schema == "public"
+    assert res.query == plain_query_template_string
+    assert res.destination_table_name == query_test_table_name
 
     # make sure the table is created in public schema
     res = client.table.get(name=query_test_table_name)
@@ -263,11 +244,11 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
         table_name=empty_table_name,
         overwrite=True,
     )
-    assert set(res.keys()) == query_log_keys
-    assert res["error_result"] is None
-    assert res["destination_schema"] == "public"
-    assert res["query"] == completed_changed_query
-    assert res["destination_table_name"] == empty_table_name
+    assert isinstance(res, QueryLog)
+    assert res.error_result is None
+    assert res.destination_schema == "public"
+    assert res.query == completed_changed_query
+    assert res.destination_table_name == empty_table_name
 
 
 @pytest.mark.parametrize(
