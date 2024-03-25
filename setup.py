@@ -1,12 +1,10 @@
-import os
-
 from setuptools import setup
 
-version = os.environ.get("THANOSQL_SDK_VERSION")
+exec(open('thanosql/_version.py').read())
 
 setup(
     name="thanosql",
-    version=version,
+    version=__version__,
     description="ThanoSQL SDK for Python",
     url="https://github.com/smartmind-team/thanosql-python",
     author="SmartMind",
