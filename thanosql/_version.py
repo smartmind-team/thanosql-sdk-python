@@ -1,3 +1,1 @@
-import os
-
-__version__ = os.environ.get("THANOSQL_SDK_VERSION")
+__version__ = "1.0.0"

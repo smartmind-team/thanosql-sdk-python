@@ -1,11 +1,22 @@
-from setuptools import setup
+from os import path
 
-exec(open('thanosql/_version.py').read())
+from setuptools import setup, find_packages
+
+here = path.abspath(path.dirname(__file__))
+
+with open(path.join(here, "README.md"), encoding="utf-8") as f:
+    long_description = f.read()
+
+pkg_vars = {}
+with open("thanosql/_version.py") as f:
+    exec(f.read(), pkg_vars)
 
 setup(
     name="thanosql",
-    version=__version__,
+    version=pkg_vars["__version__"],
     description="ThanoSQL SDK for Python",
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     url="https://github.com/smartmind-team/thanosql-python",
     author="SmartMind",
     author_email="dev@smartmind.team",
@@ -18,7 +29,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     keywords="smartmind thanosql sdk",
-    packages=["thanosql"],
+    packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=["requests", "pydantic>=2.0"],
     include_package_data=True,
     zip_safe=False,
