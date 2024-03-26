@@ -11,6 +11,7 @@ from ._table import (
     Table,
     TableObject,
     TableService,
+    TableTemplate,
     Unique,
 )
 from ._view import View, ViewService

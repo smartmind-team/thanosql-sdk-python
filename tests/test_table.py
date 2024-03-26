@@ -80,17 +80,17 @@ def test_create_table_success(client: ThanoSQL, new_schema: str):
 
 def test_get_tables_default(client: ThanoSQL):
     res = client.table.list()
-    assert "tables" in res
+    assert isinstance(res, list)
     # at least the three tables that we made earlier
-    assert len(res["tables"]) >= 3
+    assert len(res) >= 3
 
 
 def test_get_tables_with_options(client: ThanoSQL, new_schema: str):
     res = client.table.list(schema=new_schema, verbose=True)
-    assert "tables" in res
+    assert isinstance(res, list)
     # we only have one table in this schema
-    assert len(res["tables"]) == 1
-    assert {"name", "schema", "columns", "constraints"} == set(res["tables"][0].keys())
+    assert len(res) == 1
+    assert isinstance(res[0], BaseTable)
 
 
 def test_update_table(client: ThanoSQL, new_schema: str):

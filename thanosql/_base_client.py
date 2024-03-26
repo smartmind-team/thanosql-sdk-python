@@ -1,15 +1,13 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+import os
+from typing import Any, Union
 
 import requests
 from tqdm import tqdm
 
 import thanosql._error as thanosql_error
-
-if TYPE_CHECKING:
-    from thanosql.resources._file import FileName
 
 
 class ThanoSQLBaseClient:
@@ -51,7 +49,7 @@ class ThanoSQLBaseClient:
         path_params: dict | None = None,
         query_params: dict | None = None,
         payload: dict | None = None,
-        file: FileName | None = None,
+        file: Union[str, os.PathLike] | None = None,
         stream: bool = False,
     ) -> Any:
         full_url = self._create_full_url(

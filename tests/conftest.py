@@ -14,7 +14,7 @@ from tests.utils.table import (
 )
 from thanosql._client import ThanoSQL
 from thanosql._error import ThanoSQLNotFoundError
-from thanosql.resources import BaseColumn, Table, TableObject, View
+from thanosql.resources import BaseColumn, Table, TableObject, TableTemplate, View
 
 basic_table_columns = [("integer", "id"), ("varchar", "name"), ("integer", "price")]
 basic_view_columns = [basic_table_columns[0][1], basic_table_columns[1][1]]
@@ -69,7 +69,7 @@ def basic_table_name(basic_table: Table) -> str:
 
 
 @pytest.fixture(scope="module")
-def empty_table_template(client: ThanoSQL) -> dict:
+def empty_table_template(client: ThanoSQL) -> Generator[TableTemplate, None, None]:
     name = f"test_empty_template_{fake.unique.pystr(min_chars=8, max_chars=8).lower()}"
     yield create_table_template(client=client, name=name, table=TableObject())
     try:

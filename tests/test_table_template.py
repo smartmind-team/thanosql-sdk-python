@@ -10,7 +10,7 @@ from thanosql._error import (
     ThanoSQLNotFoundError,
     ThanoSQLValueError,
 )
-from thanosql.resources import TableObject
+from thanosql.resources import TableObject, TableTemplate
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 latest_version = "2.0"
 
 
-def test_create_table_template_invalid(client: ThanoSQL, empty_table_template: dict):
+def test_create_table_template_invalid(client: ThanoSQL, empty_table_template: TableTemplate):
     # check that we cannot create table template with too long of a name
     with pytest.raises(ThanoSQLValueError):
         client.table.template.create(
@@ -31,8 +31,7 @@ def test_create_table_template_invalid(client: ThanoSQL, empty_table_template: d
         client.table.template.create(name="!#%", table_template=TableObject())
 
     # creation of empty table template version 1.0 is done in conftest set-up
-    assert "name" in empty_table_template
-    name = empty_table_template["name"]
+    name = empty_table_template.name
 
     # check that we cannot create table template with the same name and version
     with pytest.raises(ThanoSQLAlreadyExistsError):
@@ -78,13 +77,13 @@ def test_get_table_template(client: ThanoSQL, empty_table_template_name: str):
     res = client.table.template.get(name=empty_table_template_name, version="latest")
     assert {"table_templates", "versions"} == set(res.keys())
     assert len(res["table_templates"]) == 1
-    assert res["table_templates"][0]["version"] == latest_version
+    assert res["table_templates"][0].version == latest_version
 
     # only the specified version should be returned
     res = client.table.template.get(name=empty_table_template_name, version="1.0")
     assert {"table_templates", "versions"} == set(res.keys())
     assert len(res["table_templates"]) == 1
-    assert res["table_templates"][0]["version"] == "1.0"
+    assert res["table_templates"][0].version == "1.0"
 
     # without any version in the request, all table templates should be returned
     res = client.table.template.get(name=empty_table_template_name)
@@ -97,9 +96,9 @@ def test_get_table_template(client: ThanoSQL, empty_table_template_name: str):
 
 def test_get_table_templates_default(client: ThanoSQL):
     res = client.table.template.list()
-    assert "table_templates" in res
+    assert isinstance(res, list)
     # at least the two templates that we made earlier
-    assert len(res["table_templates"]) >= 2
+    assert len(res) >= 2
 
 
 def test_delete_table_template_not_found(
