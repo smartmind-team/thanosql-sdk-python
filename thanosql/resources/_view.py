@@ -42,8 +42,8 @@ class ViewService(ThanoSQLService):
         )
 
         if "views" in raw_response:
-            views_service_adapter = TypeAdapter(List[View])
-            parsed_response = views_service_adapter.validate_python(
+            views_adapter = TypeAdapter(List[View])
+            parsed_response = views_adapter.validate_python(
                 raw_response["views"]
             )
             return parsed_response
@@ -59,8 +59,8 @@ class ViewService(ThanoSQLService):
         )
 
         if "view" in raw_response:
-            view_service_adapter = TypeAdapter(View)
-            parsed_response = view_service_adapter.validate_python(raw_response["view"])
+            view_adapter = TypeAdapter(View)
+            parsed_response = view_adapter.validate_python(raw_response["view"])
             return parsed_response
 
         return raw_response

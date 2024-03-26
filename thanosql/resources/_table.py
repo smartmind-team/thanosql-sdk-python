@@ -88,8 +88,8 @@ class TableService(ThanoSQLService):
         )
 
         if "tables" in raw_response:
-            tables_service_adapter = TypeAdapter(List[BaseTable])
-            parsed_response = tables_service_adapter.validate_python(
+            tables_adapter = TypeAdapter(List[BaseTable])
+            parsed_response = tables_adapter.validate_python(
                 raw_response["tables"]
             )
             return parsed_response
@@ -105,8 +105,8 @@ class TableService(ThanoSQLService):
         )
 
         if "table" in raw_response:
-            table_service_adapter = TypeAdapter(Table)
-            parsed_response = table_service_adapter.validate_python(
+            table_adapter = TypeAdapter(Table)
+            parsed_response = table_adapter.validate_python(
                 raw_response["table"]
             )
             parsed_response.service = self
@@ -217,8 +217,8 @@ class TableTemplateService(ThanoSQLService):
         )
 
         if "table_templates" in raw_response:
-            table_templates_service_adapter = TypeAdapter(List[TableTemplate])
-            parsed_response = table_templates_service_adapter.validate_python(
+            table_templates_adapter = TypeAdapter(List[TableTemplate])
+            parsed_response = table_templates_adapter.validate_python(
                 raw_response["table_templates"]
             )
             return parsed_response
@@ -234,11 +234,11 @@ class TableTemplateService(ThanoSQLService):
         )
 
         if "table_templates" in raw_response:
-            table_templates_service_adapter = TypeAdapter(List[TableTemplate])
+            table_templates_adapter = TypeAdapter(List[TableTemplate])
             parsed_response = {}
             parsed_response[
                 "table_templates"
-            ] = table_templates_service_adapter.validate_python(
+            ] = table_templates_adapter.validate_python(
                 raw_response["table_templates"]
             )
             parsed_response["versions"] = raw_response["versions"]
