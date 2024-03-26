@@ -2,7 +2,7 @@
 
 The ThanoSQL Python library provides convenient access to the ThanoSQL API from any Python 3.8+ application. The library covers all ThanoSQL operations that users can do, such as querying, editing tables, and much more.
 
-## Usage
+## Installation and Usage
 
 In order to use the library, first clone this repository.
 
@@ -10,18 +10,15 @@ In order to use the library, first clone this repository.
 git clone https://github.com/smartmind-team/thanosql-sdk-python.git
 ```
 
-Before starting with the SDK, install all the requirements. While not necessary, using a virtual environment, such as `virtualenv` or `venv` is highly recommended to avoid package conflicts. Note that the Python version used during development is 3.8.10.
+Install the SDK by using `pip install`. Note that the Python version used during development is 3.8.10.
 
 ```bash
-python -m venv {path_to_virtual_environment}
-source {path_to_virtual_environment}/bin/activate
-pip install -r requirements.txt  # use requirements-test.txt instead if you want to develop unit tests
 pip install -e .
 pip install -e ."[dev]" # include unit test
 pip install -e ."[magic]" # include magic
 ```
 
-Next, configure the required environment variables. A working workspace engine is required. If you are running a Python script through a terminal, use `export`.
+Next, optionally configure the required environment variables. A working workspace engine is required. If you are running a Python script through a terminal, use `export`. You can also choose to skip this step and specify the API token and URL in the function parameters when initializing a client.
 
 ```bash
 export THANOSQL_API_TOKEN={your_engine_api_token}
@@ -170,7 +167,7 @@ IPython magic commands are prefixed with % or %% and % applies the magic to a si
 
 To install thanosql-magic, you can use pip:
 
-```
+```bash
 pip install thanosql[magic]
 ```
 
@@ -190,7 +187,7 @@ After loading the extension, you can connect to your ThanoSQL Engine instance by
    %thanosql API_TOKEN=<Issued_API_TOKEN>
    ```
 
-1. Changing the Default API URI (Optional)
+2. Changing the Default API URI (Optional)
 
    ```python
    %thanosql http://localhost:8000/api/v1/query

@@ -30,7 +30,7 @@ setup(
     ],
     keywords="smartmind thanosql sdk",
     packages=find_packages(exclude=["tests", "tests.*"]),
-    install_requires=["requests", "pydantic>=2.0"],
+    install_requires=["requests", "urllib3", "pydantic>=2.0"],
     extras_require={
         "dev": [
             "pytest",
