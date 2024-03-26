@@ -2,9 +2,24 @@
 
 The ThanoSQL Python library provides convenient access to the ThanoSQL API from any Python 3.8+ application. The library covers all ThanoSQL operations that users can do, such as querying, editing tables, and much more.
 
-## Installation and Usage
+## Installation
 
-In order to use the library, first clone this repository.
+Refer to the following instructions to install the ThanoSQL Python library from PyPI.
+
+```bash
+pip install thanosql
+```
+
+> [!WARNING]
+> Make sure to uninstall ThanoSQL Magic first.
+>
+> `pip uninstall thanosql-magic`
+>
+> In order to use the library with ThanoSQL Magic,
+>
+> `pip install thanosql[magic]`
+
+Alternatively, you can also install from source. First, clone this repository.
 
 ```bash
 git clone https://github.com/smartmind-team/thanosql-sdk-python.git
@@ -18,7 +33,9 @@ pip install -e ."[dev]" # include unit test
 pip install -e ."[magic]" # include magic
 ```
 
-Next, optionally configure the required environment variables. A working workspace engine is required. If you are running a Python script through a terminal, use `export`. You can also choose to skip this step and specify the API token and URL in the function parameters when initializing a client.
+## Usage
+
+You can optionally configure the required environment variables. A working workspace engine is required. If you are running a Python script through a terminal, use `export`. You can also choose to skip this step and specify the API token and URL in the function parameters when initializing a client.
 
 ```bash
 export THANOSQL_API_TOKEN={your_engine_api_token}
