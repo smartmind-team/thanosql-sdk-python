@@ -31,6 +31,21 @@ setup(
     keywords="smartmind thanosql sdk",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=["requests", "pydantic>=2.0"],
+    extras_require={
+        "dev": [
+            "pytest",
+            "faker",
+        ],
+        "magic": [
+            "ipython",
+            "pandas",
+            "sqlalchemy",
+            "numpy",
+            "matplotlib",
+            "websocket-client",
+            "pglast"
+        ]
+    },
     include_package_data=True,
     zip_safe=False,
 )
