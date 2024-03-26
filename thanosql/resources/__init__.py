@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from ._file import FileService
 from ._query import QueryLog, QueryService, QueryTemplate
 from ._schema import SchemaService
