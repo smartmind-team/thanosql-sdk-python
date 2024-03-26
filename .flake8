@@ -1,0 +1,17 @@
+[flake8]
+# Ignore style and complexity
+# E: style errors
+# W: style warnings
+# C: complexity
+# F401: module imported but unused
+# F403: import *
+# F811: redefinition of unused `name` from line `N`
+# F841: local variable assigned but never used
+# E402: module level import not at top of file
+# D400: docstring first line should end with a period
+# C901: function is too complex
+ignore = E, C, W, F401, F403, F811, F841, E402, D400, C901
+exclude = .git,__pycache__,.mypy_cache,.pytest_cache
+max-line-length = 88
+max-complexity = 18
+builtins = c, get_config
