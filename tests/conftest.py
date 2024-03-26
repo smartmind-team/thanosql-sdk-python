@@ -2,6 +2,8 @@ import logging
 
 import pytest
 
+from typing import Generator
+
 from tests.faker import fake
 from tests.utils.table import (
     create_schema,
@@ -24,7 +26,7 @@ def client() -> ThanoSQL:
 
 
 @pytest.fixture(scope="module")
-def new_schema(client: ThanoSQL) -> str:
+def new_schema(client: ThanoSQL) -> Generator[str, None, None]:
     name = f"test_new_schema_{fake.unique.pystr(8).lower()}"
     yield create_schema(client=client, name=name)
     try:
@@ -34,7 +36,7 @@ def new_schema(client: ThanoSQL) -> str:
 
 
 @pytest.fixture(scope="module")
-def empty_table(client: ThanoSQL) -> Table:
+def empty_table(client: ThanoSQL) -> Generator[Table, None, None]:
     name = f"test_empty_table_{fake.unique.pystr(8).lower()}"
     yield create_table(client=client, name=name, schema="public", table=TableObject())
     try:
@@ -44,7 +46,7 @@ def empty_table(client: ThanoSQL) -> Table:
 
 
 @pytest.fixture(scope="module")
-def basic_table(client: ThanoSQL) -> Table:
+def basic_table(client: ThanoSQL) -> Generator[Table, None, None]:
     table_object = TableObject(
         columns=[BaseColumn(type=col[0], name=col[1]) for col in basic_table_columns]
     )
@@ -82,7 +84,7 @@ def empty_table_template_name(empty_table_template: dict) -> str:
 
 
 @pytest.fixture(scope="module")
-def empty_view(client: ThanoSQL, empty_table_name: str) -> View:
+def empty_view(client: ThanoSQL, empty_table_name: str) -> Generator[View, None, None]:
     name = f"test_empty_view_{fake.unique.pystr(8).lower()}"
     yield create_view(
         client=client, name=name, column_names="*", table_name=empty_table_name
@@ -94,7 +96,7 @@ def empty_view(client: ThanoSQL, empty_table_name: str) -> View:
 
 
 @pytest.fixture(scope="module")
-def basic_view(client: ThanoSQL, basic_table_name: str) -> View:
+def basic_view(client: ThanoSQL, basic_table_name: str) -> Generator[View, None, None]:
     name = f"test_basic_view_{fake.unique.pystr(8).lower()}"
     yield create_view(
         client=client,

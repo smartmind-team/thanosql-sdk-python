@@ -21,7 +21,7 @@ setup(
     author="SmartMind",
     author_email="dev@smartmind.team",
     license="MIT",
-    python_requires=">= 3.10",
+    python_requires=">= 3.8",
     classifiers=[
         "Intended Audience :: Developers",
         "Programming Language :: Python :: 3",

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 from pydantic import BaseModel, TypeAdapter
 
@@ -94,7 +94,7 @@ class QueryLogService(ThanoSQLService):
         raw_response = self.client._request(method="get", path=path, query_params=query_params)
         
         if "query_logs" in raw_response:
-            query_logs_adapter = TypeAdapter(list[QueryLog])
+            query_logs_adapter = TypeAdapter(List[QueryLog])
             parsed_response = {}
             parsed_response["query_logs"] = query_logs_adapter.validate_python(
                 raw_response["query_logs"]
@@ -137,7 +137,7 @@ class QueryTemplateService(ThanoSQLService):
         raw_response = self.client._request(method="get", path=path, query_params=query_params)
         
         if "query_templates" in raw_response:
-            query_templates_adapter = TypeAdapter(list[QueryTemplate])
+            query_templates_adapter = TypeAdapter(List[QueryTemplate])
             parsed_response = query_templates_adapter.validate_python(
                 raw_response["query_templates"]
             )

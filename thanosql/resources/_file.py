@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, TypeAlias
+
+from typing import TYPE_CHECKING, Union
 
 from thanosql._service import ThanoSQLService
 
@@ -9,14 +10,11 @@ if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
 
 
-FileName: TypeAlias = str | bytes | os.PathLike
-
-
 class FileService(ThanoSQLService):
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="file")
 
-    def list(self, path: FileName) -> dict:
+    def list(self, path: Union[str, os.PathLike]) -> dict:
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(file_path=path)
 
@@ -26,7 +24,7 @@ class FileService(ThanoSQLService):
 
     def upload(
         self,
-        path: FileName,
+        path: Union[str, os.PathLike],
         db_commit: bool | None = None,
         table: str | None = None,
         column: str | None = None,
@@ -43,7 +41,7 @@ class FileService(ThanoSQLService):
 
     def delete(
         self,
-        path: FileName,
+        path: Union[str, os.PathLike],
         db_commit: bool | None = None,
         table: str | None = None,
         column: str | None = None,

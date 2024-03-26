@@ -10,7 +10,7 @@ In order to use the library, first clone this repository.
 git clone https://github.com/smartmind-team/thanosql-sdk-python.git
 ```
 
-Before starting with the SDK, install all the requirements. While not necessary, using a virtual environment, such as `virtualenv` or `venv` is highly recommended to avoid package conflicts. Note that the Python version used during development is 3.8.16.
+Before starting with the SDK, install all the requirements. While not necessary, using a virtual environment, such as `virtualenv` or `venv` is highly recommended to avoid package conflicts. Note that the Python version used during development is 3.8.10.
 
 ```bash
 python -m venv {path_to_virtual_environment}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 
 from pydantic import BaseModel, Field, TypeAdapter
 
@@ -40,7 +40,7 @@ class ViewService(ThanoSQLService):
         raw_response = self.client._request(method="get", path=path, query_params=query_params)
         
         if "views" in raw_response:
-            views_service_adapter = TypeAdapter(list[View])
+            views_service_adapter = TypeAdapter(List[View])
             parsed_response = views_service_adapter.validate_python(
                 raw_response["views"]
             )

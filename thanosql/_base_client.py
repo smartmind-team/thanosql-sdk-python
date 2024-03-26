@@ -93,17 +93,16 @@ class ThanoSQLBaseClient:
                     code = response_json["error"].get("code", code)
                     message = response_json["error"].get("message", message)
 
-                match code:
-                    case 400 | 405 | 422:
-                        raise thanosql_error.ThanoSQLValueError(message=message)
-                    case 401 | 403:
-                        raise thanosql_error.ThanoSQLPermissionError(message=message)
-                    case 404:
-                        raise thanosql_error.ThanoSQLNotFoundError(message=message)
-                    case 409:
-                        raise thanosql_error.ThanoSQLAlreadyExistsError(message=message)
-                    case 500:
-                        raise thanosql_error.ThanoSQLInternalError(message=message)
+                if code in {400, 405, 422}:
+                    raise thanosql_error.ThanoSQLValueError(message=message)
+                elif code in {401, 403}:
+                    raise thanosql_error.ThanoSQLPermissionError(message=message)
+                elif code == 404:
+                    raise thanosql_error.ThanoSQLNotFoundError(message=message)
+                elif code == 409:
+                    raise thanosql_error.ThanoSQLAlreadyExistsError(message=message)
+                elif code == 500:
+                    raise thanosql_error.ThanoSQLInternalError(message=message)
 
             if stream:
                 filename = response.headers.get(
