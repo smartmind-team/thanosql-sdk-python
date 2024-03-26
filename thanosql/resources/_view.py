@@ -14,8 +14,8 @@ if TYPE_CHECKING:
 class View(BaseModel):
     name: str
     table_schema: Optional[str] = Field(alias="schema", default=None)
-    columns: List[Column]
-    definition: str
+    columns: List[Column] = []
+    definition: str = ""
 
 
 class ViewService(ThanoSQLService):

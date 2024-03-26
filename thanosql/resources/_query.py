@@ -23,7 +23,7 @@ class QueryLog(BaseModel):
     destination_schema: Optional[str]
     error_result: Optional[str]
     created_at: Optional[datetime]
-    records: Optional[list]
+    records: Optional[list] = None
 
 
 class QueryService(ThanoSQLService):

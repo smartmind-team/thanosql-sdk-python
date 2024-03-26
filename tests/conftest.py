@@ -78,8 +78,8 @@ def empty_table_template(client: ThanoSQL) -> Generator[TableTemplate, None, Non
 
 
 @pytest.fixture(scope="module")
-def empty_table_template_name(empty_table_template: dict) -> str:
-    return empty_table_template["name"]
+def empty_table_template_name(empty_table_template: TableTemplate) -> str:
+    return empty_table_template.name
 
 
 @pytest.fixture(scope="module")

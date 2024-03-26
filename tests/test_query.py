@@ -39,7 +39,7 @@ query_test_selected_columns = ["name", "price"]
 def test_create_query_template_invalid(client: ThanoSQL):
     # name too long
     with pytest.raises(ThanoSQLValueError):
-        client.query.template.create(name=fake.unique.pystr(min_chars=30, max_chars=35))
+        client.query.template.create(name=fake.unique.pystr(min_chars=35, max_chars=40))
 
     # invalid jinja template
     with pytest.raises(ThanoSQLValueError):
@@ -121,7 +121,7 @@ def test_update_query_template_invalid(client: ThanoSQL):
     with pytest.raises(ThanoSQLValueError):
         client.query.template.update(
             current_name=basic_query_template_name,
-            new_name=fake.unique.pystr(min_chars=30, max_chars=35),
+            new_name=fake.unique.pystr(min_chars=35, max_chars=40),
         )
 
     # new name already used

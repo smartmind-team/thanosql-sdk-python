@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from thanosql._client import ThanoSQL
-from thanosql.resources import Table, TableObject
+from thanosql.resources import Table, TableObject, View
 
 
 def create_schema(client: ThanoSQL, name: str) -> str:
@@ -45,7 +45,7 @@ def create_view(
     column_names: Union[str, List[str]],
     table_name: str,
     schema: Optional[str] = None,
-) -> dict:
+) -> Union[View, dict]:
     if schema:
         name = f"{schema}.{name}"
 
@@ -57,4 +57,4 @@ def create_view(
 
     res = client.query.execute(query=query)
     res = client.view.get(name=name, schema=schema)
-    return res["view"]
+    return res
