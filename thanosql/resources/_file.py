@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import os
-
-from typing import Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from thanosql._service import ThanoSQLService
 

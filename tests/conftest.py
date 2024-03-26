@@ -1,8 +1,7 @@
 import logging
+from typing import Generator
 
 import pytest
-
-from typing import Generator
 
 from tests.faker import fake
 from tests.utils.table import (

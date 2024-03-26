@@ -1,5 +1,6 @@
-import pandas as pd
 import re
+
+import pandas as pd
 from IPython.display import Audio, Image, Video, display
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Connection
@@ -13,7 +14,6 @@ from .exception import (
 
 
 def format_result(output_dict: dict):
-
     data = output_dict["data"]
     workspace_db_info = data.get("workspace_db_info")
     response_type = data.get("response_type")
@@ -54,8 +54,6 @@ def format_result(output_dict: dict):
                     Therefore, this is subject to change in the future.
                     """
                     print("Success")
-                
-
 
         elif response_type == "SELECT":
             result = stream_sql_results(conn=conn, query_string=query_string)
@@ -128,32 +126,33 @@ def print_video(df, print_option):
         display(Video(video_full_path, embed=True))
     return
 
+
 def stream_sql_results(conn: Connection, query_string: str) -> pd.DataFrame:
     dfs = []
     for chunk_df in pd.read_sql_query(
-        text(query_string), 
-        conn.execution_options(stream_results=True),
-        chunksize=10000):
+        text(query_string), conn.execution_options(stream_results=True), chunksize=10000
+    ):
         dfs.append(chunk_df)
     result = pd.concat(dfs)
     return result
+
 
 def get_query_type(query_string: str) -> str:
     import pglast
 
     try:
         query_type = "_".join(
-                    map(
-                        str,
-                        re.findall(
-                            "[A-Z][^A-Z]*",
-                            pglast.parser.parse_sql(query_string)[
-                                0
-                            ].stmt.__class__.__name__.replace("Stmt", ""),
-                        ),
-                    )
-                ).upper()
-        
+            map(
+                str,
+                re.findall(
+                    "[A-Z][^A-Z]*",
+                    pglast.parser.parse_sql(query_string)[
+                        0
+                    ].stmt.__class__.__name__.replace("Stmt", ""),
+                ),
+            )
+        ).upper()
+
     except pglast.parser.ParseError as e:
         raise ThanoSQLSyntaxError(str(e))
 

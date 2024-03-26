@@ -1,6 +1,6 @@
 from os import path
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 here = path.abspath(path.dirname(__file__))
 
@@ -16,7 +16,7 @@ setup(
     version=pkg_vars["__version__"],
     description="ThanoSQL SDK for Python",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     url="https://github.com/smartmind-team/thanosql-python",
     author="SmartMind",
     author_email="dev@smartmind.team",
@@ -43,8 +43,8 @@ setup(
             "numpy",
             "matplotlib",
             "websocket-client",
-            "pglast"
-        ]
+            "pglast",
+        ],
     },
     include_package_data=True,
     zip_safe=False,

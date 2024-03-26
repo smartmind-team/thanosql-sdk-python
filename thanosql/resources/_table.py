@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import os
-
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
@@ -84,8 +83,10 @@ class TableService(ThanoSQLService):
             schema=schema, verbose=verbose, offset=offset, limit=limit
         )
 
-        raw_response = self.client._request(method="get", path=path, query_params=query_params)
-        
+        raw_response = self.client._request(
+            method="get", path=path, query_params=query_params
+        )
+
         if "tables" in raw_response:
             tables_service_adapter = TypeAdapter(List[BaseTable])
             parsed_response = tables_service_adapter.validate_python(
@@ -125,7 +126,10 @@ class TableService(ThanoSQLService):
         )
 
     def create(
-        self, name: str, schema: Optional[str] = None, table: Optional[TableObject] = None
+        self,
+        name: str,
+        schema: Optional[str] = None,
+        table: Optional[TableObject] = None,
     ) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -208,8 +212,10 @@ class TableTemplateService(ThanoSQLService):
             latest=latest,
         )
 
-        raw_response = self.client._request(method="get", path=path, query_params=query_params)
-    
+        raw_response = self.client._request(
+            method="get", path=path, query_params=query_params
+        )
+
         if "table_templates" in raw_response:
             table_templates_service_adapter = TypeAdapter(List[TableTemplate])
             parsed_response = table_templates_service_adapter.validate_python(
@@ -223,17 +229,21 @@ class TableTemplateService(ThanoSQLService):
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(version=version)
 
-        raw_response = self.client._request(method="get", path=path, query_params=query_params)
-        
+        raw_response = self.client._request(
+            method="get", path=path, query_params=query_params
+        )
+
         if "table_templates" in raw_response:
             table_templates_service_adapter = TypeAdapter(List[TableTemplate])
             parsed_response = {}
-            parsed_response["table_templates"] = table_templates_service_adapter.validate_python(
+            parsed_response[
+                "table_templates"
+            ] = table_templates_service_adapter.validate_python(
                 raw_response["table_templates"]
             )
             parsed_response["versions"] = raw_response["versions"]
             return parsed_response
-        
+
         return raw_response
 
     def create(

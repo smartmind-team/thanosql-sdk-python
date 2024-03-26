@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 latest_version = "2.0"
 
 
-def test_create_table_template_invalid(client: ThanoSQL, empty_table_template: TableTemplate):
+def test_create_table_template_invalid(
+    client: ThanoSQL, empty_table_template: TableTemplate
+):
     # check that we cannot create table template with too long of a name
     with pytest.raises(ThanoSQLValueError):
         client.table.template.create(

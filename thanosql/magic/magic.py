@@ -16,7 +16,7 @@ DEFAULT_API_URL = f"ws://{engine_cluster_ip}/ws/v1/query"
 
 def request_thanosql_engine(ws, api_url, api_token, query_context):
     from .util import format_result
-    
+
     try:
         ws.connect(f"{api_url}?api_token={api_token}")
     except:
@@ -44,6 +44,7 @@ def request_thanosql_engine(ws, api_url, api_token, query_context):
 @magics_class
 class ThanosMagic(Magics):
     import websocket
+
     ws = websocket.WebSocket()
 
     @needs_local_scope

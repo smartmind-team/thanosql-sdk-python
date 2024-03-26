@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List, Optional, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from pydantic import BaseModel, Field, TypeAdapter
 
@@ -37,8 +37,10 @@ class ViewService(ThanoSQLService):
             limit=limit,
         )
 
-        raw_response = self.client._request(method="get", path=path, query_params=query_params)
-        
+        raw_response = self.client._request(
+            method="get", path=path, query_params=query_params
+        )
+
         if "views" in raw_response:
             views_service_adapter = TypeAdapter(List[View])
             parsed_response = views_service_adapter.validate_python(
@@ -52,13 +54,13 @@ class ViewService(ThanoSQLService):
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
-        raw_response = self.client._request(method="get", path=path, query_params=query_params)
-        
+        raw_response = self.client._request(
+            method="get", path=path, query_params=query_params
+        )
+
         if "view" in raw_response:
             view_service_adapter = TypeAdapter(View)
-            parsed_response = view_service_adapter.validate_python(
-                raw_response["view"]
-            )
+            parsed_response = view_service_adapter.validate_python(raw_response["view"])
             return parsed_response
 
         return raw_response
