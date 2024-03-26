@@ -16,6 +16,9 @@ Before starting with the SDK, install all the requirements. While not necessary,
 python -m venv {path_to_virtual_environment}
 source {path_to_virtual_environment}/bin/activate
 pip install -r requirements.txt  # use requirements-test.txt instead if you want to develop unit tests
+pip install -e .
+pip install -e ."[dev]" # include unit test
+pip install -e ."[magic]" # include magic
 ```
 
 Next, configure the required environment variables. A working workspace engine is required. If you are running a Python script through a terminal, use `export`.
@@ -154,3 +157,52 @@ client.file.upload(path*, db_commit, table, column, dir)
 # Deleting a file from the workspace
 client.file.delete(path*, db_commit, table, column)
 ```
+
+## Magic
+
+`thanosql-magic` is a Jupyter Notebook extension that provides SQL query capabilities using [ThanoSQL](https://www.thanosql.ai). This magic extension enables users to interact with ThanoSQL Workspace databases using extended SQL syntax within a Jupyter notebook.
+
+`thanosql-magic` uses IPython magic. [IPython magic](https://ipython.readthedocs.io/en/stable/interactive/magics.html) is a special command that can be used in the IPython shell to perform specific tasks before executing the code. Since Jupyter includes the IPython shell, you can also use these magic commands in Jupyter Notebook.
+
+IPython magic commands are prefixed with % or %% and % applies the magic to a single line of code, while %% applies the magic to multiple lines of code.
+
+### Installation
+
+To install thanosql-magic, you can use pip:
+
+```
+pip install thanosql[magic]
+```
+
+Once installed, you can load the extension in your Jupyter notebook by running:
+
+```python
+%load_ext thanosql
+```
+
+### Usage
+
+After loading the extension, you can connect to your ThanoSQL Engine instance by setting the thanosql variable:
+
+1. Setting API_TOKEN
+
+   ```python
+   %thanosql API_TOKEN=<Issued_API_TOKEN>
+   ```
+
+1. Changing the Default API URI (Optional)
+
+   ```python
+   %thanosql http://localhost:8000/api/v1/query
+   ```
+
+3. Using Magic Commands
+
+   You can then execute SQL queries on your Thanos data using the %thanosql magic command:
+
+   ```python
+   %%thanosql
+   SELECT * FROM users
+   ```
+
+   This will run the SQL query and display the results in your Jupyter notebook.
