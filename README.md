@@ -35,27 +35,18 @@ pip install -e ."[magic]" # include magic
 
 ## Usage
 
-You can optionally configure the required environment variables. A working workspace engine is required. If you are running a Python script through a terminal, use `export`. You can also choose to skip this step and specify the API token and URL in the function parameters when initializing a client.
-
-```bash
-export THANOSQL_API_TOKEN={your_engine_api_token}
-export THANOSQL_ENGINE_URL={your_engine_url}
-```
-
-In the root directory of the repository, create a new Python or IPython notebook file, and optionally add the filename to `.gitignore`. Files beginning with `trial` are ignored by default. For practical purposes, assume that a Python file called `trial.py` is used. Import the `thanosql` package, create a `ThanoSQL` client, and you can use all the functions in the library. In the example below, we will use the library to show all tables in the workspace. For more examples, head over to the `examples/` directory.
+In order to use the library, a working workspace engine is required. Create a new Python or IPython notebook file, and optionally add the file name to `.gitignore`. Import the `thanosql` package, create a `ThanoSQL` client with your API token and engine URL, and then you can use all the functions in the library. In the example below, we will use the library to show all tables in the workspace. For more examples, head over to the `examples/` directory.
 
 ```python
-# trial.py
-
 from thanosql import ThanoSQL
 
 client = ThanoSQL(api_token=THANOSQL_API_VERSION, engine_url=THANOSQL_ENGINE_URL)
 
-res = client.table.list()
+tables = client.table.list()
 
-# do something with res
-print(res.json())
-
+# do something with the list of tables
+for table in tables:
+   print(table.name)
 ```
 
 Available methods will be further described in the next section. `*` indicates a required parameter.
@@ -121,7 +112,7 @@ client.table.template.create(name*, table_template*, version, compatibility)
 client.table.template.delete(name*, version)
 ```
 
-In order to create a table or table template object, some classes need to be imported in addition to the client. Refer to the example for table and table template APIs for more detail. `client.table.get()` return a `Table` object, which is required to access the record entries of a certain table.
+In order to create a table or table template object, some classes need to be imported in addition to the client. Refer to the example for table and table template APIs for more detail. `client.table.get()` returns a `Table` object, which is required to access the record entries of a certain table.
 
 ```python
 my_table = client.table.get(name=my_table_name)
