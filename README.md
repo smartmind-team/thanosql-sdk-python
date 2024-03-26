@@ -17,12 +17,13 @@ pip install thanosql
 >
 > In order to use the library with ThanoSQL Magic,
 >
-> `pip install thanosql[magic]`
+> `pip install 'thanosql[magic]'`
 
 Alternatively, you can also install from source. First, clone this repository.
 
 ```bash
 git clone https://github.com/smartmind-team/thanosql-sdk-python.git
+cd thanosql-sdk-python
 ```
 
 Install the SDK by using `pip install`. Note that the Python version used during development is 3.8.10.
@@ -37,14 +38,14 @@ pip install -e ."[magic]" # include magic
 
 In order to use the library, a working workspace engine is required. Create a new Python or IPython notebook file. Import the `thanosql` package, create a `ThanoSQL` client with your API token and engine URL, and then you can use all the functions in the library. For more examples, head over to the [examples/](./examples/) directory.
 
-1. Set up your API_TOKEN and ENGINE_URL (recommended)
+1. Set up your API_TOKEN and ENGINE_URL (recommended).
 
    ```bash
    export THANOSQL_API_TOKEN='your-api-token-here'
    export THANOSQL_ENGINE_URL='your-engine-url-here'
    ```
 
-2. Import the ThanoSQL client and use it to query your ThanoSQL Workspace
+2. Import the ThanoSQL client and use it to query your ThanoSQL Workspace.
 
    ```python
    from thanosql import ThanoSQL
@@ -58,7 +59,7 @@ In order to use the library, a working workspace engine is required. Create a ne
    # )
 
    res = client.query.execute(query="SELECT 1")
-   print(res)
+   print(res.model_dump_json(indent=4))
 
    tables = client.table.list(schema="public")
 
@@ -66,6 +67,7 @@ In order to use the library, a working workspace engine is required. Create a ne
    for table in tables:
       print(table.name)
    ```
+
 ## Magic
 
 `thanosql-magic` is a Jupyter Notebook extension that provides SQL query capabilities using [ThanoSQL](https://www.thanosql.ai). This magic extension enables users to interact with ThanoSQL Workspace databases using extended SQL syntax within a Jupyter notebook.
@@ -79,7 +81,7 @@ IPython magic commands are prefixed with % or %% and % applies the magic to a si
 To install thanosql-magic, you can use pip:
 
 ```bash
-pip install thanosql[magic]
+pip install 'thanosql[magic]'
 ```
 
 Once installed, you can load the extension in your Jupyter notebook by running:
