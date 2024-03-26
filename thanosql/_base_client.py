@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import os
-from typing import Any, Union
+from typing import Any, Optional, Union
 
 import requests
 from tqdm import tqdm
@@ -24,8 +24,8 @@ class ThanoSQLBaseClient:
     def _create_full_url(
         self,
         path: str = "",
-        path_params: dict | None = None,
-        query_params: dict | None = None,
+        path_params: Optional[dict] = None,
+        query_params: Optional[dict] = None,
     ) -> str:
         url = self.url + path
 
@@ -46,10 +46,10 @@ class ThanoSQLBaseClient:
         self,
         method: str,
         path: str,
-        path_params: dict | None = None,
-        query_params: dict | None = None,
-        payload: dict | None = None,
-        file: Union[str, os.PathLike] | None = None,
+        path_params: Optional[dict] = None,
+        query_params: Optional[dict] = None,
+        payload: Optional[dict] = None,
+        file: Optional[Union[str, os.PathLike]] = None,
         stream: bool = False,
     ) -> Any:
         full_url = self._create_full_url(

@@ -1,3 +1,5 @@
+from typing import List, Optional, Union
+
 from thanosql._client import ThanoSQL
 from thanosql.resources import Table, TableObject
 
@@ -15,8 +17,8 @@ def delete_schema(client: ThanoSQL, name: str) -> dict:
 def create_table(
     client: ThanoSQL,
     name: str,
-    schema: str | None = None,
-    table: TableObject | None = None,
+    schema: Optional[str] = None,
+    table: Optional[TableObject] = None,
 ) -> Table:
     res = client.table.create(name=name, schema=schema, table=table)
     res = client.table.get(name=name, schema=schema)
@@ -26,9 +28,9 @@ def create_table(
 def create_table_template(
     client: ThanoSQL,
     name: str,
-    table: TableObject | None = None,
-    version: str | None = None,
-    compatibility: str | None = None,
+    table: Optional[TableObject] = None,
+    version: Optional[str] = None,
+    compatibility: Optional[str] = None,
 ) -> dict:
     res = client.table.template.create(
         name=name, table_template=table, version=version, compatibility=compatibility
@@ -40,9 +42,9 @@ def create_table_template(
 def create_view(
     client: ThanoSQL,
     name: str,
-    column_names: str | list[str],
+    column_names: Union[str, List[str]],
     table_name: str,
-    schema: str | None = None,
+    schema: Optional[str] = None,
 ) -> dict:
     if schema:
         name = f"{schema}.{name}"

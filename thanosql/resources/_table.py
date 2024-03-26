@@ -16,32 +16,32 @@ if TYPE_CHECKING:
 
 
 class BaseColumn(BaseModel):
-    default: str | None = None
-    is_nullable: bool | None = True
+    default: Optional[str] = None
+    is_nullable: Optional[bool] = True
     type: str
     name: str
 
 
 class Column(BaseModel):
-    id: int | None = None
-    default: str | None = None
-    is_nullable: bool | None = True
+    id: Optional[int] = None
+    default: Optional[str] = None
+    is_nullable: Optional[bool] = True
     type: str
     name: str
 
 
 class Unique(BaseModel):
-    name: str | None = None
-    columns: list[str] | None = []
+    name: Optional[str] = None
+    columns: Optional[List[str]] = []
 
 
 class PrimaryKey(BaseModel):
-    name: str | None = None
-    columns: list[str] | None = []
+    name: Optional[str] = None
+    columns: Optional[List[str]] = []
 
 
 class ForeignKey(BaseModel):
-    name: str | None = None
+    name: Optional[str] = None
     reference_schema: str = "public"
     reference_column: str
     reference_table: str
@@ -49,21 +49,21 @@ class ForeignKey(BaseModel):
 
 
 class Constraints(BaseModel):
-    unique: list[Unique] | None = None
-    primary_key: PrimaryKey | None = None
-    foreign_keys: list[ForeignKey] | None = None
+    unique: Optional[List[Unique]] = None
+    primary_key: Optional[PrimaryKey] = None
+    foreign_keys: Optional[List[ForeignKey]] = None
 
 
 class BaseTable(BaseModel):
-    name: str | None = None
-    table_schema: str | None = Field(alias="schema", default=None)
-    columns: list[BaseColumn] | None = None
-    constraints: Constraints | None = None
+    name: Optional[str] = None
+    table_schema: Optional[str] = Field(alias="schema", default=None)
+    columns: Optional[List[BaseColumn]] = None
+    constraints: Optional[Constraints] = None
 
 
 class TableObject(BaseModel):
-    columns: list[BaseColumn] | None = None
-    constraints: Constraints | None = None
+    columns: Optional[List[BaseColumn]] = None
+    constraints: Optional[Constraints] = None
 
 
 class TableService(ThanoSQLService):
@@ -74,11 +74,11 @@ class TableService(ThanoSQLService):
 
     def list(
         self,
-        schema: str | None = None,
-        verbose: bool | None = None,
-        offset: int | None = None,
-        limit: int | None = None,
-    ) -> list[BaseTable] | dict:
+        schema: Optional[str] = None,
+        verbose: Optional[bool] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> Union[List[BaseTable], dict]:
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema, verbose=verbose, offset=offset, limit=limit
@@ -95,7 +95,7 @@ class TableService(ThanoSQLService):
 
         return raw_response
 
-    def get(self, name: str, schema: str | None = None) -> Table | dict:
+    def get(self, name: str, schema: Optional[str] = None) -> Union[Table, dict]:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
@@ -114,7 +114,7 @@ class TableService(ThanoSQLService):
         return raw_response
 
     def update(
-        self, name: str, schema: str | None = None, table: BaseTable | None = None
+        self, name: str, schema: Optional[str] = None, table: Optional[BaseTable] = None
     ) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -125,7 +125,7 @@ class TableService(ThanoSQLService):
         )
 
     def create(
-        self, name: str, schema: str | None = None, table: TableObject | None = None
+        self, name: str, schema: Optional[str] = None, table: Optional[TableObject] = None
     ) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -139,9 +139,9 @@ class TableService(ThanoSQLService):
         self,
         name: str,
         file: Union[str, os.PathLike],
-        schema: str | None = None,
-        table: TableObject | None = None,
-        if_exists: str | None = None,
+        schema: Optional[str] = None,
+        table: Optional[TableObject] = None,
+        if_exists: Optional[str] = None,
     ) -> dict:
         path = f"/{self.tag}/{name}/upload/"
 
@@ -174,7 +174,7 @@ class TableService(ThanoSQLService):
             file=file,
         )
 
-    def delete(self, name: str, schema: str | None = None) -> dict:
+    def delete(self, name: str, schema: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
@@ -197,10 +197,10 @@ class TableTemplateService(ThanoSQLService):
 
     def list(
         self,
-        search: str | None = None,
-        order_by: str | None = None,
-        latest: bool | None = None,
-    ) -> list[TableTemplate] | dict:
+        search: Optional[str] = None,
+        order_by: Optional[str] = None,
+        latest: Optional[bool] = None,
+    ) -> Union[List[TableTemplate], dict]:
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             search=search,
@@ -219,7 +219,7 @@ class TableTemplateService(ThanoSQLService):
 
         return raw_response
 
-    def get(self, name: str, version: str | None = None) -> dict:
+    def get(self, name: str, version: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(version=version)
 
@@ -240,8 +240,8 @@ class TableTemplateService(ThanoSQLService):
         self,
         name: str,
         table_template: TableObject,
-        version: str | None = None,
-        compatibility: str | None = None,
+        version: Optional[str] = None,
+        compatibility: Optional[str] = None,
     ) -> dict:
         path = f"/{self.tag}/{name}"
         payload = self._create_input_dict(
@@ -252,7 +252,7 @@ class TableTemplateService(ThanoSQLService):
 
         return self.client._request(method="post", path=path, payload=payload)
 
-    def delete(self, name: str, version: str | None = None) -> dict:
+    def delete(self, name: str, version: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(version=version)
 
@@ -264,12 +264,12 @@ class TableTemplateService(ThanoSQLService):
 class Table(BaseTable):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    service: TableService | None = None
+    service: Optional[TableService] = None
 
     def get_records(
         self,
-        offset: int | None = None,
-        limit: int | None = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> dict:
         path = f"/{self.service.tag}/{self.name}/records"
 
@@ -287,7 +287,7 @@ class Table(BaseTable):
 
     def get_records_as_csv(
         self,
-        timezone_offset: int | None = None,
+        timezone_offset: Optional[int] = None,
     ) -> None:
         path = f"/{self.service.tag}/{self.name}/records/csv"
 
@@ -302,7 +302,7 @@ class Table(BaseTable):
 
     def insert(
         self,
-        records: list[dict],
+        records: List[dict],
     ) -> dict:
         path = f"/{self.service.tag}/{self.name}/records"
         query_params = self.service._create_input_dict(schema=self.table_schema)

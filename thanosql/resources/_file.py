@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from typing import TYPE_CHECKING, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 from thanosql._service import ThanoSQLService
 
@@ -25,10 +25,10 @@ class FileService(ThanoSQLService):
     def upload(
         self,
         path: Union[str, os.PathLike],
-        db_commit: bool | None = None,
-        table: str | None = None,
-        column: str | None = None,
-        dir: str | None = None,
+        db_commit: Optional[bool] = None,
+        table: Optional[str] = None,
+        column: Optional[str] = None,
+        dir: Optional[str] = None,
     ) -> dict:
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(
@@ -42,9 +42,9 @@ class FileService(ThanoSQLService):
     def delete(
         self,
         path: Union[str, os.PathLike],
-        db_commit: bool | None = None,
-        table: str | None = None,
-        column: str | None = None,
+        db_commit: Optional[bool] = None,
+        table: Optional[str] = None,
+        column: Optional[str] = None,
     ) -> dict:
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(

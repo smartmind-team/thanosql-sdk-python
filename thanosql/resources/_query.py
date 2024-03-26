@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Union
 
 from pydantic import BaseModel, TypeAdapter
 
@@ -36,15 +36,15 @@ class QueryService(ThanoSQLService):
     def execute(
         self,
         query_type: str = "thanosql",
-        query: str | None = None,
-        template_id: int | None = None,
-        template_name: str | None = None,
-        parameters: dict | None = None,
-        schema: str | None = None,
-        table_name: str | None = None,
-        overwrite: bool | None = None,
-        max_results: int | None = None,
-    ) -> QueryLog | dict:
+        query: Optional[str] = None,
+        template_id: Optional[int] = None,
+        template_name: Optional[str] = None,
+        parameters: Optional[dict] = None,
+        schema: Optional[str] = None,
+        table_name: Optional[str] = None,
+        overwrite: Optional[bool] = None,
+        max_results: Optional[int] = None,
+    ) -> Union[QueryLog, dict]:
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema,
@@ -82,9 +82,9 @@ class QueryLogService(ThanoSQLService):
 
     def list(
         self,
-        search: str | None = None,
-        offset: int | None = None,
-        limit: int | None = None,
+        search: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
     ) -> dict:
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
@@ -109,7 +109,7 @@ class QueryTemplate(BaseModel):
     id: Optional[int] = None
     name: str
     query: str
-    parameters: Optional[list[str]] = []
+    parameters: Optional[List[str]] = []
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -124,11 +124,11 @@ class QueryTemplateService(ThanoSQLService):
 
     def list(
         self,
-        search: str | None = None,
-        offset: int | None = None,
-        limit: int | None = None,
-        order_by: str | None = None,
-    ) -> list[QueryTemplate] | dict:
+        search: Optional[str] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        order_by: Optional[str] = None,
+    ) -> Union[List[QueryTemplate], dict]:
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
             search=search, offset=offset, limit=limit, order_by=order_by
@@ -147,10 +147,10 @@ class QueryTemplateService(ThanoSQLService):
 
     def create(
         self,
-        name: str | None = None,
-        query: str | None = None,
-        dry_run: bool | None = None,
-    ) -> QueryTemplate | dict:
+        name: Optional[str] = None,
+        query: Optional[str] = None,
+        dry_run: Optional[bool] = None,
+    ) -> Union[QueryTemplate, dict]:
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(dry_run=dry_run)
         payload = self._create_input_dict(name=name, query=query)
@@ -168,7 +168,7 @@ class QueryTemplateService(ThanoSQLService):
         
         return raw_response
 
-    def get(self, name: str) -> QueryTemplate | dict:
+    def get(self, name: str) -> Union[QueryTemplate, dict]:
         path = f"/{self.query.tag}/{self.tag}/{name}"
 
         raw_response = self.client._request(method="get", path=path)
@@ -183,8 +183,8 @@ class QueryTemplateService(ThanoSQLService):
         return raw_response
 
     def update(
-        self, current_name: str, new_name: str | None = None, query: str | None = None
-    ) -> QueryTemplate | dict:
+        self, current_name: str, new_name: Optional[str] = None, query: Optional[str] = None
+    ) -> Union[QueryTemplate, dict]:
         path = f"/{self.query.tag}/{self.tag}/{current_name}"
         payload = self._create_input_dict(name=new_name, query=query)
 

@@ -1,13 +1,16 @@
+from typing import Optional
+
+
 class ThanoSQLError(Exception):
     def __init__(
         self,
-        message: str | None = None,
-        json_body: object | None = None,
-        code: str | None = None,
+        message: Optional[str] = None,
+        json_body: Optional[object] = None,
+        code: Optional[str] = None,
     ):
-        self.message: str | None = message
-        self.json_body: object | None = json_body
-        self.code: str | None = code
+        self.message: Optional[str] = message
+        self.json_body: Optional[object] = json_body
+        self.code: Optional[str] = code
 
     def __str__(self):
         msg = self.message or "<empty message>"
