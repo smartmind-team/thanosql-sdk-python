@@ -35,134 +35,37 @@ pip install -e ."[magic]" # include magic
 
 ## Usage
 
-In order to use the library, a working workspace engine is required. Create a new Python or IPython notebook file, and optionally add the file name to `.gitignore`. Import the `thanosql` package, create a `ThanoSQL` client with your API token and engine URL, and then you can use all the functions in the library. In the example below, we will use the library to show all tables in the workspace. For more examples, head over to the `examples/` directory.
+In order to use the library, a working workspace engine is required. Create a new Python or IPython notebook file. Import the `thanosql` package, create a `ThanoSQL` client with your API token and engine URL, and then you can use all the functions in the library. For more examples, head over to the [examples/](./examples/) directory.
 
-```python
-from thanosql import ThanoSQL
+1. Set up your API_TOKEN and ENGINE_URL (recommended)
 
-client = ThanoSQL(api_token=THANOSQL_API_VERSION, engine_url=THANOSQL_ENGINE_URL)
+   ```bash
+   export THANOSQL_API_TOKEN='your-api-token-here'
+   export THANOSQL_ENGINE_URL='your-engine-url-here'
+   ```
 
-tables = client.table.list()
+2. Import the ThanoSQL client and use it to query your ThanoSQL Workspace
 
-# do something with the list of tables
-for table in tables:
-   print(table.name)
-```
+   ```python
+   from thanosql import ThanoSQL
 
-Available methods will be further described in the next section. `*` indicates a required parameter.
+   client = ThanoSQL()
+   # defaults to getting the token using os.environ.get("THANOSQL_API_TOKEN"),
+   # and also defaults to getting the url using os.environ.get("THANOSQL_ENGINE_URL"),
+   # client = ThanoSQL(
+   #     api_token='your-api-token-here',
+   #     engine_url='your-engine-url-here'
+   # )
 
-## Methods
+   res = client.query.execute(query="SELECT 1")
+   print(res)
 
-### Query, Query Log, and Query Template APIs
+   tables = client.table.list(schema="public")
 
-```python
-# Running a ThanoSQL or PSQL query
-client.query.execute(query_type, query, template_id, template_name, parameters, schema, table_name, overwrite, max_results)
-
-# Showing stored query logs
-client.query.log.list(search, offset, limit)
-
-# Showing stored query templates
-client.query.template.list(search, offset, limit, order_by)
-
-# Creating a query template
-client.query.template.create(name, query, dry_run)
-
-# Showing the details of a query template
-client.query.template.get(name*)
-
-# Updating a query template
-client.query.template.update(current_name*, new_name, query)
-
-# Deleting a query template
-client.query.template.delete(name*)
-```
-
-### Table and Table Template APIs
-
-```python
-# Showing stored tables
-client.table.list(schema, verbose, offset, limit)
-
-# Showing the details of a table
-client.table.get(name*, schema)
-
-# Creating a table
-client.table.create(name*, schema, table)
-
-# Updating a table
-client.table.update(name*, schema, table)
-
-# Uploading a table from a CSV or Excel file
-client.table.upload(name*, file*, schema, table, if_exists)
-
-# Deleting a table
-client.table.delete(name*, schema)
-
-# Showing stored table templates
-client.table.template.list(search, order_by, latest)
-
-# Showing the details of one or more table templates of a certain name
-client.table.template.get(name*, version)
-
-# Creating a table template
-client.table.template.create(name*, table_template*, version, compatibility)
-
-# Deleting one or more table templates of a certain name
-client.table.template.delete(name*, version)
-```
-
-In order to create a table or table template object, some classes need to be imported in addition to the client. Refer to the example for table and table template APIs for more detail. `client.table.get()` returns a `Table` object, which is required to access the record entries of a certain table.
-
-```python
-my_table = client.table.get(name=my_table_name)
-
-# Showing the entries of a table
-my_table.get_records(offset, limit)
-
-# Saving the entries of a table into a CSV file
-my_table.get_records_as_csv(timezone_offset)
-
-# Inserting new entry(ies) into a table
-my_table.insert(records)
-```
-
-### View APIs
-
-```python
-# Showing stored views
-client.view.list(schema, verbose, offset, limit)
-
-# Showing the details of a view
-client.view.get(name*, schema)
-
-# Deleting a view
-client.view.delete(name*, schema)
-```
-
-### Schema APIs
-
-```python
-# Showing stored schemas
-client.schema.list()
-
-# Creating a new schema
-client.schema.create(name*)
-```
-
-### File APIs
-
-```python
-# Showing the contents of a directory
-client.file.list(path*)
-
-# Uploading a file to the workspace
-client.file.upload(path*, db_commit, table, column, dir)
-
-# Deleting a file from the workspace
-client.file.delete(path*, db_commit, table, column)
-```
-
+   # do something with the list of tables
+   for table in tables:
+      print(table.name)
+   ```
 ## Magic
 
 `thanosql-magic` is a Jupyter Notebook extension that provides SQL query capabilities using [ThanoSQL](https://www.thanosql.ai). This magic extension enables users to interact with ThanoSQL Workspace databases using extended SQL syntax within a Jupyter notebook.
