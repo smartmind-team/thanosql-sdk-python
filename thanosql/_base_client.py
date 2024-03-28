@@ -63,7 +63,9 @@ class ThanoSQLBaseClient:
 
         try:
             if file:
-                payload_json["files"] = {"file": (file, open(file, "rb"))}
+                payload_json["files"] = {
+                    "file": (os.path.basename(file), open(file, "rb"))
+                }
                 if payload:
                     payload_json["files"]["body"] = (
                         None,
