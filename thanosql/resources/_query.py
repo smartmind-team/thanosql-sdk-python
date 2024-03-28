@@ -35,8 +35,8 @@ class QueryService(ThanoSQLService):
 
     def execute(
         self,
-        query_type: str = "thanosql",
         query: Optional[str] = None,
+        query_type: str = "thanosql",
         template_id: Optional[int] = None,
         template_name: Optional[str] = None,
         parameters: Optional[dict] = None,
