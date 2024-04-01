@@ -1,14 +1,18 @@
 from __future__ import annotations
 
+import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
+import numpy as np
+import pandas as pd
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
+from thanosql.resources._util import get_sqlalchemy_type
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -89,9 +93,7 @@ class TableService(ThanoSQLService):
 
         if "tables" in raw_response:
             tables_adapter = TypeAdapter(List[BaseTable])
-            parsed_response = tables_adapter.validate_python(
-                raw_response["tables"]
-            )
+            parsed_response = tables_adapter.validate_python(raw_response["tables"])
             return parsed_response
 
         return raw_response
@@ -106,9 +108,7 @@ class TableService(ThanoSQLService):
 
         if "table" in raw_response:
             table_adapter = TypeAdapter(Table)
-            parsed_response = table_adapter.validate_python(
-                raw_response["table"]
-            )
+            parsed_response = table_adapter.validate_python(raw_response["table"])
             parsed_response.service = self
             return parsed_response
 
@@ -142,129 +142,56 @@ class TableService(ThanoSQLService):
     def upload(
         self,
         name: str,
-        file: Union[str, os.PathLike],
+        file: Optional[Union[str, os.PathLike]] = None,
+        df: Optional[pd.DataFrame] = None,
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
         if_exists: Optional[str] = None,
     ) -> dict:
-        path = f"/{self.tag}/{name}/upload/"
+        if file:
+            path = f"/{self.tag}/{name}/upload/"
 
-        file_extension = Path(file).suffix.lower()
-        if file_extension == ".csv":
-            path = path + "csv"
-        elif file_extension in [
-            ".xls",
-            ".xlsx",
-            ".xlsm",
-            ".xlsb",
-            ".odf",
-            ".ods",
-            ".odt",
-        ]:
-            path = path + "excel"
-        else:
-            raise ThanoSQLValueError(
-                "Invalid format: only CSV and Excel files possible."
+            file_extension = Path(file).suffix.lower()
+            if file_extension == ".csv":
+                path = path + "csv"
+            elif file_extension in [
+                ".xls",
+                ".xlsx",
+                ".xlsm",
+                ".xlsb",
+                ".odf",
+                ".ods",
+                ".odt",
+            ]:
+                path = path + "excel"
+            else:
+                raise ThanoSQLValueError(
+                    "Invalid format: only CSV and Excel files possible."
+                )
+
+            query_params = self._create_input_dict(schema=schema, if_exists=if_exists)
+            payload = self._create_input_dict(table=table)
+
+            return self.client._request(
+                method="post",
+                path=path,
+                query_params=query_params,
+                payload=payload,
+                file=file,
             )
 
-        query_params = self._create_input_dict(schema=schema, if_exists=if_exists)
-        payload = self._create_input_dict(table=table)
+        elif df is not None:
+            df_loader = DataFrameLoader(df)
+            return df_loader.load_df_to_table(
+                client=self.client, name=name, schema=schema
+            )
 
-        return self.client._request(
-            method="post",
-            path=path,
-            query_params=query_params,
-            payload=payload,
-            file=file,
-        )
+        else:
+            raise ThanoSQLValueError("No file or DataFrame provided for upload")
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
-
-        return self.client._request(
-            method="delete", path=path, query_params=query_params
-        )
-
-
-class TableTemplate(BaseModel):
-    name: str
-    table_template: TableObject
-    version: Optional[str]
-    compatibility: Optional[str]
-    created_at: Optional[datetime]
-
-
-class TableTemplateService(ThanoSQLService):
-    def __init__(self, client: ThanoSQL) -> None:
-        super().__init__(client=client, tag="table_template")
-
-    def list(
-        self,
-        search: Optional[str] = None,
-        order_by: Optional[str] = None,
-        latest: Optional[bool] = None,
-    ) -> Union[List[TableTemplate], dict]:
-        path = f"/{self.tag}/"
-        query_params = self._create_input_dict(
-            search=search,
-            order_by=order_by,
-            latest=latest,
-        )
-
-        raw_response = self.client._request(
-            method="get", path=path, query_params=query_params
-        )
-
-        if "table_templates" in raw_response:
-            table_templates_adapter = TypeAdapter(List[TableTemplate])
-            parsed_response = table_templates_adapter.validate_python(
-                raw_response["table_templates"]
-            )
-            return parsed_response
-
-        return raw_response
-
-    def get(self, name: str, version: Optional[str] = None) -> dict:
-        path = f"/{self.tag}/{name}"
-        query_params = self._create_input_dict(version=version)
-
-        raw_response = self.client._request(
-            method="get", path=path, query_params=query_params
-        )
-
-        if "table_templates" in raw_response:
-            table_templates_adapter = TypeAdapter(List[TableTemplate])
-            parsed_response = {}
-            parsed_response[
-                "table_templates"
-            ] = table_templates_adapter.validate_python(
-                raw_response["table_templates"]
-            )
-            parsed_response["versions"] = raw_response["versions"]
-            return parsed_response
-
-        return raw_response
-
-    def create(
-        self,
-        name: str,
-        table_template: TableObject,
-        version: Optional[str] = None,
-        compatibility: Optional[str] = None,
-    ) -> dict:
-        path = f"/{self.tag}/{name}"
-        payload = self._create_input_dict(
-            table_template=vars(table_template),
-            version=version,
-            compatibility=compatibility,
-        )
-
-        return self.client._request(method="post", path=path, payload=payload)
-
-    def delete(self, name: str, version: Optional[str] = None) -> dict:
-        path = f"/{self.tag}/{name}"
-        query_params = self._create_input_dict(version=version)
 
         return self.client._request(
             method="delete", path=path, query_params=query_params
@@ -320,3 +247,172 @@ class Table(BaseTable):
         return self.service.client._request(
             method="post", path=path, query_params=query_params, payload=records
         )
+
+
+class TableTemplate(BaseModel):
+    name: str
+    table_template: TableObject
+    version: Optional[str]
+    compatibility: Optional[str]
+    created_at: Optional[datetime]
+
+
+class TableTemplateService(ThanoSQLService):
+    def __init__(self, client: ThanoSQL) -> None:
+        super().__init__(client=client, tag="table_template")
+
+    def list(
+        self,
+        search: Optional[str] = None,
+        order_by: Optional[str] = None,
+        latest: Optional[bool] = None,
+    ) -> Union[List[TableTemplate], dict]:
+        path = f"/{self.tag}/"
+        query_params = self._create_input_dict(
+            search=search,
+            order_by=order_by,
+            latest=latest,
+        )
+
+        raw_response = self.client._request(
+            method="get", path=path, query_params=query_params
+        )
+
+        if "table_templates" in raw_response:
+            table_templates_adapter = TypeAdapter(List[TableTemplate])
+            parsed_response = table_templates_adapter.validate_python(
+                raw_response["table_templates"]
+            )
+            return parsed_response
+
+        return raw_response
+
+    def get(self, name: str, version: Optional[str] = None) -> dict:
+        path = f"/{self.tag}/{name}"
+        query_params = self._create_input_dict(version=version)
+
+        raw_response = self.client._request(
+            method="get", path=path, query_params=query_params
+        )
+
+        if "table_templates" in raw_response:
+            table_templates_adapter = TypeAdapter(List[TableTemplate])
+            parsed_response = {}
+            parsed_response[
+                "table_templates"
+            ] = table_templates_adapter.validate_python(raw_response["table_templates"])
+            parsed_response["versions"] = raw_response["versions"]
+            return parsed_response
+
+        return raw_response
+
+    def create(
+        self,
+        name: str,
+        table_template: TableObject,
+        version: Optional[str] = None,
+        compatibility: Optional[str] = None,
+    ) -> dict:
+        path = f"/{self.tag}/{name}"
+        payload = self._create_input_dict(
+            table_template=vars(table_template),
+            version=version,
+            compatibility=compatibility,
+        )
+
+        return self.client._request(method="post", path=path, payload=payload)
+
+    def delete(self, name: str, version: Optional[str] = None) -> dict:
+        path = f"/{self.tag}/{name}"
+        query_params = self._create_input_dict(version=version)
+
+        return self.client._request(
+            method="delete", path=path, query_params=query_params
+        )
+
+
+class DataFrameLoader:
+    """
+    Class for loading data from a pandas DataFrame and loading them into a PostgreSQL database.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The DataFrame containing the data to be loaded.
+
+    Attributes
+    ----------
+    df : pd.DataFrame
+        Processed DataFrame
+    dtype_list : List[tuple]
+        List of tuples of columns and data types of the columns in the DataFrame
+
+    Methods
+    -------
+    """
+
+    def __init__(self, df: pd.DataFrame) -> None:
+        self.df: pd.DataFrame
+        self.dtype_list: List[Tuple]
+
+        self.df, self.dtype_list = self.load_df_to_object(df)
+
+    def load_df_to_object(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Tuple]]:
+        df_columns = df.columns.tolist()
+        dtype_list = []
+
+        for column_name in df_columns:
+            if df.empty:
+                dtype = "SMALLINT"
+            else:
+                column_values = df[column_name]
+
+                column_value = column_values.iloc[0]
+                dtype = get_sqlalchemy_type(column_values)
+
+                if isinstance(column_value, (np.ndarray, list)):
+                    if isinstance(column_value, np.ndarray):
+                        df[column_name] = df[column_name].apply(
+                            lambda row: row.tolist()
+                        )
+
+                    array = np.array(column_value)
+                    dtype_dimension = "[]" * array.ndim
+                    column_value = array.flat[0]
+                    dtype = get_sqlalchemy_type(pd.Series(column_value))
+                    dtype += dtype_dimension  # eg) INT[][][]
+
+                elif isinstance(column_value, dict):
+                    df[column_name] = df[column_name].apply(json.dumps)
+
+            dtype_list.append((column_name, dtype))  # eg) (number, INT)
+
+        return df, dtype_list
+
+    def assemble_columns(self) -> TableObject:
+        columns = []
+        for col, col_type in self.dtype_list:
+            columns.append(BaseColumn(type=col_type, name=col))
+
+        return TableObject(columns=columns)
+
+    def load_to_empty_table(
+        self, client: ThanoSQL, name: str, schema: str
+    ) -> Union[Table, dict]:
+        table_obj = self.assemble_columns()
+        client.table.create(name=name, schema=schema, table=table_obj)
+        return client.table.get(name=name, schema=schema)
+
+    def load_contents_to_table(
+        self, client: ThanoSQL, name: str, schema: str
+    ) -> Union[Table, dict]:
+        records = self.df.to_dict("records")
+        target_table = client.table.get(name=name, schema=schema)
+        target_table.insert(records=records)
+        return target_table
+
+    def load_df_to_table(
+        self, client: ThanoSQL, name: str, schema: str
+    ) -> Union[Table, dict]:
+        self.load_to_empty_table(client=client, name=name, schema=schema)
+        return self.load_contents_to_table(client=client, name=name, schema=schema)
