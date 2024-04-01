@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 
 from thanosql._base_client import ThanoSQLBaseClient
+from thanosql._error import ThanoSQLValueError
 from thanosql.resources import (
     FileService,
     QueryService,
@@ -23,6 +24,10 @@ class ThanoSQL(ThanoSQLBaseClient):
         api_version: str = THANOSQL_API_VERSION,
         api_token: str = THANOSQL_API_TOKEN,
     ) -> None:
+        # API token can be empty but engine URL cannot
+        if not engine_url:
+            raise ThanoSQLValueError("Please input a valid engine URL.")
+        
         super().__init__(base_url=engine_url, version=api_version, token=api_token)
 
         self.file: FileService = FileService(self)
