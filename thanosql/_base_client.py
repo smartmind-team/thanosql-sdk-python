@@ -11,10 +11,10 @@ import thanosql._error as thanosql_error
 
 
 class ThanoSQLBaseClient:
-    def __init__(self, base_url: str, version: str, token: str) -> None:
+    def __init__(self, token: str, base_url: str, version: str) -> None:
+        self.token: str = token
         self.base_url: str = base_url.strip("/")
         self.version: str = version
-        self.token: str = token
 
         self.url: str = f"{self.base_url}/api/{version}"
 
