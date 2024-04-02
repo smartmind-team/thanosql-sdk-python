@@ -36,7 +36,7 @@ pip install -e ."[magic]" # include magic
 
 ## Usage
 
-In order to use the library, a working workspace engine is required. Create a new Python or IPython notebook file. Import the `thanosql` package, create a `ThanoSQL` client with your API token and engine URL, and then you can use all the functions in the library. For more examples, head over to the [examples/](./examples/) directory.
+In order to use the library, a working workspace engine is required. Create a new Python or IPython notebook file. Import the `thanosql` package, create a `ThanoSQL` client with your API token and engine URL, and then you can use all the functions in the library. For more examples, head over to the [examples](./docs/examples/) directory.
 
 1. First, set up your API_TOKEN and ENGINE_URL (recommended). You can find them by accessing your workspace's settings page. Head over to the `Developer` tab, and then copy your API Token and Engine URL.
 
