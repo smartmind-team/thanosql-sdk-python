@@ -30,7 +30,7 @@ Install the SDK by using `pip install`. Note that the Python version used during
 
 ```bash
 pip install -e .
-pip install -e ."[dev]" # include unit test
+pip install -e ."[dev]" # include unit test & docs (requires python >= 3.9)
 pip install -e ."[magic]" # include magic
 ```
 
