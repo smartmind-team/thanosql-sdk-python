@@ -5,10 +5,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+from pydantic import Field, TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
+from thanosql.resources._model import BaseModel
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -89,9 +90,7 @@ class TableService(ThanoSQLService):
 
         if "tables" in raw_response:
             tables_adapter = TypeAdapter(List[BaseTable])
-            parsed_response = tables_adapter.validate_python(
-                raw_response["tables"]
-            )
+            parsed_response = tables_adapter.validate_python(raw_response["tables"])
             return parsed_response
 
         return raw_response
@@ -106,9 +105,7 @@ class TableService(ThanoSQLService):
 
         if "table" in raw_response:
             table_adapter = TypeAdapter(Table)
-            parsed_response = table_adapter.validate_python(
-                raw_response["table"]
-            )
+            parsed_response = table_adapter.validate_python(raw_response["table"])
             parsed_response.service = self
             return parsed_response
 
@@ -238,9 +235,7 @@ class TableTemplateService(ThanoSQLService):
             parsed_response = {}
             parsed_response[
                 "table_templates"
-            ] = table_templates_adapter.validate_python(
-                raw_response["table_templates"]
-            )
+            ] = table_templates_adapter.validate_python(raw_response["table_templates"])
             parsed_response["versions"] = raw_response["versions"]
             return parsed_response
 
@@ -272,8 +267,6 @@ class TableTemplateService(ThanoSQLService):
 
 
 class Table(BaseTable):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
     service: Optional[TableService] = None
 
     def get_records(
