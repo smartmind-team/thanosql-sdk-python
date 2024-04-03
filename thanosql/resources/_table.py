@@ -113,28 +113,46 @@ class TableService(ThanoSQLService):
 
     def update(
         self, name: str, schema: Optional[str] = None, table: Optional[BaseTable] = None
-    ) -> dict:
+    ) -> BaseTable:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
         payload = self._create_input_dict(table=table)
 
-        return self.client._request(
+        raw_response = self.client._request(
             method="put", path=path, query_params=query_params, payload=payload
         )
+        
+        if "table" in raw_response:
+            table_adapter = TypeAdapter(BaseTable)
+            parsed_response = table_adapter.validate_python(
+                raw_response["table"]
+            )
+            return parsed_response
+
+        return raw_response
 
     def create(
         self,
         name: str,
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
-    ) -> dict:
+    ) -> BaseTable:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
         payload = self._create_input_dict(table=table)
 
-        return self.client._request(
+        raw_response = self.client._request(
             method="post", path=path, query_params=query_params, payload=payload
         )
+        
+        if "table" in raw_response:
+            table_adapter = TypeAdapter(BaseTable)
+            parsed_response = table_adapter.validate_python(
+                raw_response["table"]
+            )
+            return parsed_response
+
+        return raw_response
 
     def upload(
         self,
@@ -143,7 +161,7 @@ class TableService(ThanoSQLService):
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
         if_exists: Optional[str] = None,
-    ) -> dict:
+    ) -> BaseTable:
         path = f"/{self.tag}/{name}/upload/"
 
         file_extension = Path(file).suffix.lower()
@@ -167,13 +185,22 @@ class TableService(ThanoSQLService):
         query_params = self._create_input_dict(schema=schema, if_exists=if_exists)
         payload = self._create_input_dict(table=table)
 
-        return self.client._request(
+        raw_response = self.client._request(
             method="post",
             path=path,
             query_params=query_params,
             payload=payload,
             file=file,
         )
+        
+        if "table" in raw_response:
+            table_adapter = TypeAdapter(BaseTable)
+            parsed_response = table_adapter.validate_python(
+                raw_response["table"]
+            )
+            return parsed_response
+
+        return raw_response
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
@@ -247,7 +274,7 @@ class TableTemplateService(ThanoSQLService):
         table_template: TableObject,
         version: Optional[str] = None,
         compatibility: Optional[str] = None,
-    ) -> dict:
+    ) -> TableTemplate:
         path = f"/{self.tag}/{name}"
         payload = self._create_input_dict(
             table_template=vars(table_template),
@@ -255,7 +282,16 @@ class TableTemplateService(ThanoSQLService):
             compatibility=compatibility,
         )
 
-        return self.client._request(method="post", path=path, payload=payload)
+        raw_response = self.client._request(method="post", path=path, payload=payload)
+
+        if "table_template" in raw_response:
+            table_template_adapter = TypeAdapter(TableTemplate)
+            parsed_response = table_template_adapter.validate_python(
+                raw_response["table_template"]
+            )
+            return parsed_response
+
+        return raw_response
 
     def delete(self, name: str, version: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"

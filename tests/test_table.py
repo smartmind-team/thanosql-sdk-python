@@ -70,8 +70,8 @@ def test_create_table_success(client: ThanoSQL, new_schema: str):
     res = client.table.create(
         name=test_table_name_old, schema=new_schema, table=TableObject()
     )
-    assert {"message", "table_name"} == set(res.keys())
-    assert res["table_name"] == test_table_name_old
+    assert isinstance(res, BaseTable)
+    assert res.name == test_table_name_old
 
     # check that the table is indeed created
     res = client.table.get(name=test_table_name_old, schema=new_schema)
@@ -107,8 +107,8 @@ def test_update_table(client: ThanoSQL, new_schema: str):
     res = client.table.update(
         name=test_table_name_old, schema=new_schema, table=table_object
     )
-    assert {"message", "table_name"} == set(res.keys())
-    assert res["table_name"] == test_table_name_old
+    assert isinstance(res, BaseTable)
+    assert res.name == test_table_name_old
 
     # make sure the old table is no longer retrievable
     with pytest.raises(ThanoSQLNotFoundError):
@@ -192,7 +192,8 @@ def test_upload_table_invalid(client: ThanoSQL, new_schema: str):
 
 
 def test_upload_table_csv(client: ThanoSQL, basic_table_name: str):
-    client.table.upload(name=basic_table_name, file="file_csv.csv", if_exists="replace")
+    res = client.table.upload(name=basic_table_name, file="file_csv.csv", if_exists="replace")
+    assert isinstance(res, BaseTable)
 
     # check that the table and records are indeed uploaded
     target_table = client.table.get(name=basic_table_name)
@@ -214,12 +215,13 @@ def test_upload_table_excel(client: ThanoSQL, new_schema: str):
         ]
     )
 
-    client.table.upload(
+    res = client.table.upload(
         name=test_table_name_excel,
         file="file_excel.xlsx",
         schema=new_schema,
         table=table_object,
     )
+    assert isinstance(res, BaseTable)
 
     # check that the table and records are indeed uploaded
     target_table = client.table.get(name=test_table_name_excel, schema=new_schema)
