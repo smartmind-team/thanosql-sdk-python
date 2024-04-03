@@ -70,7 +70,7 @@ def test_create_table_success(client: ThanoSQL, new_schema: str):
     res = client.table.create(
         name=test_table_name_old, schema=new_schema, table=TableObject()
     )
-    assert isinstance(res, BaseTable)
+    assert isinstance(res, Table)
     assert res.name == test_table_name_old
 
     # check that the table is indeed created
@@ -90,7 +90,7 @@ def test_get_tables_with_options(client: ThanoSQL, new_schema: str):
     assert isinstance(res, list)
     # we only have one table in this schema
     assert len(res) == 1
-    assert isinstance(res[0], BaseTable)
+    assert isinstance(res[0], Table)
 
 
 def test_update_table(client: ThanoSQL, new_schema: str):
@@ -107,7 +107,7 @@ def test_update_table(client: ThanoSQL, new_schema: str):
     res = client.table.update(
         name=test_table_name_old, schema=new_schema, table=table_object
     )
-    assert isinstance(res, BaseTable)
+    assert isinstance(res, Table)
     assert res.name == test_table_name_old
 
     # make sure the old table is no longer retrievable
@@ -193,7 +193,7 @@ def test_upload_table_invalid(client: ThanoSQL, new_schema: str):
 
 def test_upload_table_csv(client: ThanoSQL, basic_table_name: str):
     res = client.table.upload(name=basic_table_name, file="file_csv.csv", if_exists="replace")
-    assert isinstance(res, BaseTable)
+    assert isinstance(res, Table)
 
     # check that the table and records are indeed uploaded
     target_table = client.table.get(name=basic_table_name)
@@ -221,7 +221,7 @@ def test_upload_table_excel(client: ThanoSQL, new_schema: str):
         schema=new_schema,
         table=table_object,
     )
-    assert isinstance(res, BaseTable)
+    assert isinstance(res, Table)
 
     # check that the table and records are indeed uploaded
     target_table = client.table.get(name=test_table_name_excel, schema=new_schema)

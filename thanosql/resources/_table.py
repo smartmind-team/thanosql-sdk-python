@@ -78,7 +78,7 @@ class TableService(ThanoSQLService):
         verbose: Optional[bool] = None,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> Union[List[BaseTable], dict]:
+    ) -> Union[List[Table], dict]:
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema, verbose=verbose, offset=offset, limit=limit
@@ -89,8 +89,10 @@ class TableService(ThanoSQLService):
         )
 
         if "tables" in raw_response:
-            tables_adapter = TypeAdapter(List[BaseTable])
+            tables_adapter = TypeAdapter(List[Table])
             parsed_response = tables_adapter.validate_python(raw_response["tables"])
+            for table in parsed_response:
+                table.service = self
             return parsed_response
 
         return raw_response
@@ -113,7 +115,7 @@ class TableService(ThanoSQLService):
 
     def update(
         self, name: str, schema: Optional[str] = None, table: Optional[BaseTable] = None
-    ) -> BaseTable:
+    ) -> Table:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
         payload = self._create_input_dict(table=table)
@@ -123,10 +125,11 @@ class TableService(ThanoSQLService):
         )
         
         if "table" in raw_response:
-            table_adapter = TypeAdapter(BaseTable)
+            table_adapter = TypeAdapter(Table)
             parsed_response = table_adapter.validate_python(
                 raw_response["table"]
             )
+            parsed_response.service = self
             return parsed_response
 
         return raw_response
@@ -136,7 +139,7 @@ class TableService(ThanoSQLService):
         name: str,
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
-    ) -> BaseTable:
+    ) -> Table:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
         payload = self._create_input_dict(table=table)
@@ -146,10 +149,11 @@ class TableService(ThanoSQLService):
         )
         
         if "table" in raw_response:
-            table_adapter = TypeAdapter(BaseTable)
+            table_adapter = TypeAdapter(Table)
             parsed_response = table_adapter.validate_python(
                 raw_response["table"]
             )
+            parsed_response.service = self
             return parsed_response
 
         return raw_response
@@ -161,7 +165,7 @@ class TableService(ThanoSQLService):
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
         if_exists: Optional[str] = None,
-    ) -> BaseTable:
+    ) -> Table:
         path = f"/{self.tag}/{name}/upload/"
 
         file_extension = Path(file).suffix.lower()
@@ -194,10 +198,11 @@ class TableService(ThanoSQLService):
         )
         
         if "table" in raw_response:
-            table_adapter = TypeAdapter(BaseTable)
+            table_adapter = TypeAdapter(Table)
             parsed_response = table_adapter.validate_python(
                 raw_response["table"]
             )
+            parsed_response.service = self
             return parsed_response
 
         return raw_response
