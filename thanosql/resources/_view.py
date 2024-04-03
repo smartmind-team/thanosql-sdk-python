@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import Field, TypeAdapter
 
 from thanosql._service import ThanoSQLService
 from thanosql.resources import Column
+from thanosql.resources._model import BaseModel
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -43,9 +44,7 @@ class ViewService(ThanoSQLService):
 
         if "views" in raw_response:
             views_adapter = TypeAdapter(List[View])
-            parsed_response = views_adapter.validate_python(
-                raw_response["views"]
-            )
+            parsed_response = views_adapter.validate_python(raw_response["views"])
             return parsed_response
 
         return raw_response

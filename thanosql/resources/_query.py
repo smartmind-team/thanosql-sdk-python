@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import enum
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 
+from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
+from thanosql.resources._model import BaseModel
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -26,6 +29,11 @@ class QueryLog(BaseModel):
     records: Optional[list] = None
 
 
+class QueryType(enum.Enum):
+    THANOSQL = "thanosql"
+    PSQL = "psql"
+
+
 class QueryService(ThanoSQLService):
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="query")
@@ -35,8 +43,8 @@ class QueryService(ThanoSQLService):
 
     def execute(
         self,
-        query_type: str = "thanosql",
         query: Optional[str] = None,
+        query_type: str = "thanosql",
         template_id: Optional[int] = None,
         template_name: Optional[str] = None,
         parameters: Optional[dict] = None,
@@ -45,6 +53,11 @@ class QueryService(ThanoSQLService):
         overwrite: Optional[bool] = None,
         max_results: Optional[int] = None,
     ) -> Union[QueryLog, dict]:
+        try:
+            query_type_enum = QueryType(query_type)
+        except Exception as e:
+            raise ThanoSQLValueError(str(e))
+        
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema,
@@ -53,7 +66,7 @@ class QueryService(ThanoSQLService):
             max_results=max_results,
         )
         payload = self._create_input_dict(
-            query_type=query_type,
+            query_type=query_type_enum.value,
             query_string=query,
             template_id=template_id,
             template_name=template_name,

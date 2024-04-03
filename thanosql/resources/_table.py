@@ -4,15 +4,17 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+from pydantic import Field, TypeAdapter
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
+from thanosql.resources._model import BaseModel
 from thanosql.resources._util import get_sqlalchemy_type
+
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -199,8 +201,6 @@ class TableService(ThanoSQLService):
 
 
 class Table(BaseTable):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
     service: Optional[TableService] = None
 
     def get_records(
