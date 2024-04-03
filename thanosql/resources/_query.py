@@ -4,10 +4,11 @@ import enum
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from pydantic import BaseModel, TypeAdapter
+from pydantic import TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
+from thanosql.resources._model import BaseModel
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
