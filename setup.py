@@ -35,6 +35,9 @@ setup(
         "dev": [
             "pytest",
             "faker",
+            "myst-nb",
+            "sphinx-autoapi",
+            "sphinx-rtd-theme"
         ],
         "magic": [
             "ipython",
