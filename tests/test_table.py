@@ -192,7 +192,9 @@ def test_upload_table_invalid(client: ThanoSQL, new_schema: str):
 
 
 def test_upload_table_csv(client: ThanoSQL, basic_table_name: str):
-    res = client.table.upload(name=basic_table_name, file="file_csv.csv", if_exists="replace")
+    res = client.table.upload(
+        name=basic_table_name, file="file_csv.csv", if_exists="replace"
+    )
     assert isinstance(res, Table)
 
     # check that the table and records are indeed uploaded
