@@ -55,7 +55,8 @@ def test_create_table_template_success(
         table_template=TableObject(),
         version=latest_version,
     )
-    assert {"message", "table_template_name"} == set(res.keys())
+    assert isinstance(res, TableTemplate)
+    assert res.name == empty_table_template_name
 
 
 def test_get_table_template_not_found(client: ThanoSQL):
