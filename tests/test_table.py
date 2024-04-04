@@ -5,6 +5,7 @@ import logging
 import os
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 
 from tests.faker import fake
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
 test_table_name = f"test_table_{fake.unique.pystr(8).lower()}"
 test_table_name_old = test_table_name + "_old"
 test_table_name_excel = test_table_name + "_excel"
+test_table_name_df = test_table_name + "_df"
 
 
 def test_get_table_not_found(client: ThanoSQL):
@@ -149,6 +151,10 @@ def test_insert_get_records_success(client: ThanoSQL, new_schema: str):
 
 
 def test_upload_table_invalid(client: ThanoSQL, new_schema: str):
+    # file or df must be provided
+    with pytest.raises(ThanoSQLValueError):
+        client.table.upload(name=test_table_name)
+
     # only CSV or Excel accepted
     with pytest.raises(ThanoSQLValueError):
         client.table.upload(name=test_table_name, file="file_txt.txt")
@@ -231,6 +237,46 @@ def test_upload_table_excel(client: ThanoSQL, new_schema: str):
     assert len(res["records"]) == limit
 
 
+# we do more thorough testing for upload with df as it is an SDK-exclusive feature
+def test_upload_table_df(client: ThanoSQL):
+    df = pd.read_excel("file_excel.xlsx")
+
+    # make sure a new table is created even if if_exists is 'append' if
+    # the name is not already taken by another table
+    res = client.table.upload(name=test_table_name_df, df=df, if_exists="append")
+    assert isinstance(res, Table)
+    
+    # get the number of records
+    num_records_initial = res.get_records()["total"]
+    
+    # make sure records are appended if the table exists
+    res = client.table.upload(name=test_table_name_df, df=df, if_exists="append")
+    num_records_appended = res.get_records()["total"]
+    assert num_records_appended == 2 * num_records_initial
+    
+    # make sure creating a table of the same name fails by default
+    with pytest.raises(ThanoSQLAlreadyExistsError):
+        client.table.upload(name=test_table_name_df, df=df)
+    
+    # make sure the table is overwritten if if_exists is 'replace'
+    res = client.table.upload(name=test_table_name_df, df=df, if_exists="replace")
+    num_records_replaced = res.get_records()["total"]
+    assert num_records_replaced == num_records_initial
+
+    table_object = TableObject(
+        columns=[BaseColumn(type="integer", name="number")],
+        constraints=Constraints(primary_key=PrimaryKey(columns=["number"])),
+    )
+    
+    # should not succeed if table body does not match cdf
+    with pytest.raises(ThanoSQLValueError):
+        client.table.upload(name=test_table_name_df, df=df, table=table_object, if_exists="replace")
+    
+    # check if the created table follows the table object provided (not the df)
+    res = client.table.get(test_table_name_df)
+    assert len(res.columns) == len(table_object.columns)
+
+
 def test_get_records_as_csv(client: ThanoSQL, new_schema: str):
     target_table = client.table.get(name=test_table_name_excel, schema=new_schema)
     target_table.get_records_as_csv()
@@ -263,6 +309,7 @@ def test_delete_table(client: ThanoSQL, new_schema: str):
     # so we just need to "manually" delete these
     client.table.delete(name=test_table_name, schema=new_schema)
     client.table.delete(name=test_table_name_excel, schema=new_schema)
+    client.table.delete(name=test_table_name_df)
 
     # check that the table is indeed deleted
     with pytest.raises(ThanoSQLNotFoundError):
