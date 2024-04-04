@@ -132,7 +132,7 @@ class QueryTemplateService(ThanoSQLService):
 
         self.query: QueryService = query
 
-    def parse_query_template_response(self, raw_response: dict):
+    def _parse_query_template_response(self, raw_response: dict):
         query_template_adapter = TypeAdapter(QueryTemplate)
         parsed_response = query_template_adapter.validate_python(
             raw_response["query_template"]
@@ -175,12 +175,12 @@ class QueryTemplateService(ThanoSQLService):
             method="post", path=path, query_params=query_params, payload=payload
         )
 
-        return self.parse_query_template_response(raw_response)
+        return self._parse_query_template_response(raw_response)
 
     def get(self, name: str) -> QueryTemplate:
         path = f"/{self.query.tag}/{self.tag}/{name}"
         raw_response = self.client._request(method="get", path=path)
-        return self.parse_query_template_response(raw_response)
+        return self._parse_query_template_response(raw_response)
 
     def update(
         self,
@@ -193,7 +193,7 @@ class QueryTemplateService(ThanoSQLService):
 
         raw_response = self.client._request(method="put", path=path, payload=payload)
 
-        return self.parse_query_template_response(raw_response)
+        return self._parse_query_template_response(raw_response)
 
     def delete(self, name: str) -> dict:
         path = f"/{self.query.tag}/{self.tag}/{name}"

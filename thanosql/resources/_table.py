@@ -72,7 +72,7 @@ class TableService(ThanoSQLService):
 
         self.template: TableTemplateService = TableTemplateService(client)
 
-    def parse_table_response(self, raw_response: dict) -> Table:
+    def _parse_table_response(self, raw_response: dict) -> Table:
         table_adapter = TypeAdapter(Table)
         parsed_response = table_adapter.validate_python(raw_response["table"])
         parsed_response.service = self
@@ -108,7 +108,7 @@ class TableService(ThanoSQLService):
             method="get", path=path, query_params=query_params
         )
 
-        return self.parse_table_response(raw_response)
+        return self._parse_table_response(raw_response)
 
     def update(
         self, name: str, schema: Optional[str] = None, table: Optional[BaseTable] = None
@@ -121,7 +121,7 @@ class TableService(ThanoSQLService):
             method="put", path=path, query_params=query_params, payload=payload
         )
 
-        return self.parse_table_response(raw_response)
+        return self._parse_table_response(raw_response)
 
     def create(
         self,
@@ -137,7 +137,7 @@ class TableService(ThanoSQLService):
             method="post", path=path, query_params=query_params, payload=payload
         )
 
-        return self.parse_table_response(raw_response)
+        return self._parse_table_response(raw_response)
 
     def upload(
         self,
@@ -178,7 +178,7 @@ class TableService(ThanoSQLService):
             file=file,
         )
 
-        return self.parse_table_response(raw_response)
+        return self._parse_table_response(raw_response)
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
@@ -320,4 +320,4 @@ class Table(BaseTable):
             method="post", path=path, query_params=query_params, payload=records
         )
 
-        return self.service.parse_table_response(raw_response)
+        return self.service._parse_table_response(raw_response)
