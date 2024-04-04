@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import enum
 import json
 import os
 from datetime import datetime
@@ -10,7 +11,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from thanosql._error import ThanoSQLValueError
+from thanosql._error import ThanoSQLAlreadyExistsError, ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql.resources._model import BaseModel
 from thanosql.resources._util import get_sqlalchemy_type
@@ -69,6 +70,12 @@ class BaseTable(BaseModel):
 class TableObject(BaseModel):
     columns: Optional[List[BaseColumn]] = None
     constraints: Optional[Constraints] = None
+
+
+class IfExists(enum.Enum):
+    FAIL = "fail"
+    APPEND = "append"
+    REPLACE = "replace"
 
 
 class TableService(ThanoSQLService):
@@ -149,7 +156,12 @@ class TableService(ThanoSQLService):
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
         if_exists: Optional[str] = None,
-    ) -> dict:
+    ) -> Union[Table, dict]:
+        try:
+            if_exists_enum = IfExists(if_exists)
+        except Exception as e:
+            raise ThanoSQLValueError(str(e))
+        
         if file:
             path = f"/{self.tag}/{name}/upload/"
 
@@ -171,7 +183,7 @@ class TableService(ThanoSQLService):
                     "Invalid format: only CSV and Excel files possible."
                 )
 
-            query_params = self._create_input_dict(schema=schema, if_exists=if_exists)
+            query_params = self._create_input_dict(schema=schema, if_exists=if_exists_enum.value)
             payload = self._create_input_dict(table=table)
 
             return self.client._request(
@@ -183,9 +195,12 @@ class TableService(ThanoSQLService):
             )
 
         elif df is not None:
-            df_loader = DataFrameLoader(df)
+            df_loader = DataFrameLoader(df=df, client=self.client)
             return df_loader.load_df_to_table(
-                client=self.client, name=name, schema=schema
+                name=name,
+                schema=schema,
+                table=table,
+                if_exists=if_exists_enum,
             )
 
         else:
@@ -351,11 +366,13 @@ class DataFrameLoader:
     -------
     """
 
-    def __init__(self, df: pd.DataFrame) -> None:
+    def __init__(self, df: pd.DataFrame, client: ThanoSQL) -> None:
         self.df: pd.DataFrame
         self.dtype_list: List[Tuple]
 
         self.df, self.dtype_list = self.load_df_to_object(df)
+        
+        self.client: ThanoSQL = client
 
     def load_df_to_object(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Tuple]]:
         df_columns = df.columns.tolist()
@@ -397,22 +414,45 @@ class DataFrameLoader:
         return TableObject(columns=columns)
 
     def load_to_empty_table(
-        self, client: ThanoSQL, name: str, schema: str
+        self, name: str, schema: str, table: Optional[TableObject] = None
     ) -> Union[Table, dict]:
-        table_obj = self.assemble_columns()
-        client.table.create(name=name, schema=schema, table=table_obj)
-        return client.table.get(name=name, schema=schema)
+        # Infer data types from df if the table body is not provided
+        # otherwise, do not use the df and use the table body directly
+        if not table:
+            table = self.assemble_columns()
+        self.client.table.create(name=name, schema=schema, table=table)
+        return self.client.table.get(name=name, schema=schema)
 
     def load_contents_to_table(
-        self, client: ThanoSQL, name: str, schema: str
+        self, name: str, schema: str
     ) -> Union[Table, dict]:
         records = self.df.to_dict("records")
-        target_table = client.table.get(name=name, schema=schema)
+        target_table = self.client.table.get(name=name, schema=schema)
         target_table.insert(records=records)
         return target_table
 
     def load_df_to_table(
-        self, client: ThanoSQL, name: str, schema: str
+        self,
+        name: str,
+        schema: str = "public",
+        table: Optional[TableObject] = None,
+        if_exists: IfExists = IfExists.FAIL,
     ) -> Union[Table, dict]:
-        self.load_to_empty_table(client=client, name=name, schema=schema)
-        return self.load_contents_to_table(client=client, name=name, schema=schema)
+        # first check if a table of the same name already exists
+        existing_table = None
+        
+        try:
+            existing_table = self.client.table.get(name=name, schema=schema)
+            if if_exists is IfExists.REPLACE:
+                self.client.table.delete(name=name, schema=schema)
+                # we deleted the table, so it no longer exists
+                existing_table = None
+        
+        finally:
+            # Don't create a new table if there is a table of the same name and if_exists is 'fail' or 'append'
+            if existing_table and if_exists is IfExists.FAIL:
+                raise ThanoSQLAlreadyExistsError(f"{name} already exists. Set 'if_exists' as 'append' or 'replace' to append to or replace an already existing table.")
+            if not existing_table:
+                self.load_to_empty_table(name=name, schema=schema, table=table)
+        
+            return self.load_contents_to_table(name=name, schema=schema)
