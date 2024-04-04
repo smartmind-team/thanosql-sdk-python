@@ -32,11 +32,9 @@ def create_table_template(
     version: Optional[str] = None,
     compatibility: Optional[str] = None,
 ) -> dict:
-    res = client.table.template.create(
+    return client.table.template.create(
         name=name, table_template=table, version=version, compatibility=compatibility
     )
-    res = client.table.template.get(name=name, version=version)
-    return res["table_templates"][0]
 
 
 def create_view(
