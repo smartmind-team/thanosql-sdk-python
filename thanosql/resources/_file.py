@@ -15,7 +15,7 @@ class FileService(ThanoSQLService):
 
     def list(self, path: Union[str, os.PathLike]) -> dict:
         api_path = f"/{self.tag}/"
-        query_params = self._create_input_dict(file_path=path)
+        query_params = self._create_input_dict(search_path=path)
 
         return self.client._request(
             method="get", path=api_path, query_params=query_params
