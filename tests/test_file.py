@@ -72,6 +72,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
         column=column_name,
         dir=dir_name,
     )
+    assert res["data"]["file_path"] == f"drive/{dir_name}/{file_name}"
     assert res["data"]["table_name"] == basic_table_name
     assert res["data"]["column_name"] == column_name
 
