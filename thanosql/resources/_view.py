@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import Field, TypeAdapter
 
@@ -29,7 +29,7 @@ class ViewService(ThanoSQLService):
         verbose: Optional[bool] = None,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> Union[List[View], dict]:
+    ) -> List[View]:
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema,
@@ -42,14 +42,11 @@ class ViewService(ThanoSQLService):
             method="get", path=path, query_params=query_params
         )
 
-        if "views" in raw_response:
-            views_adapter = TypeAdapter(List[View])
-            parsed_response = views_adapter.validate_python(raw_response["views"])
-            return parsed_response
+        views_adapter = TypeAdapter(List[View])
+        parsed_response = views_adapter.validate_python(raw_response["views"])
+        return parsed_response
 
-        return raw_response
-
-    def get(self, name: str, schema: Optional[str] = None) -> Union[View, dict]:
+    def get(self, name: str, schema: Optional[str] = None) -> View:
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
@@ -57,12 +54,9 @@ class ViewService(ThanoSQLService):
             method="get", path=path, query_params=query_params
         )
 
-        if "view" in raw_response:
-            view_adapter = TypeAdapter(View)
-            parsed_response = view_adapter.validate_python(raw_response["view"])
-            return parsed_response
-
-        return raw_response
+        view_adapter = TypeAdapter(View)
+        parsed_response = view_adapter.validate_python(raw_response["view"])
+        return parsed_response
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
