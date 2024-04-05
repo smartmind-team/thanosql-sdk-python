@@ -32,6 +32,7 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=[
         "numpy",
+        "openpyxl",
         "pandas",
         "pydantic>=2.0",
         "requests",
@@ -39,13 +40,7 @@ setup(
         "urllib3",
     ],
     extras_require={
-        "dev": [
-            "faker",
-            "pytest",
-            "myst-nb",
-            "sphinx-autoapi",
-            "sphinx-rtd-theme"
-        ],
+        "dev": ["faker", "pytest", "myst-nb", "sphinx-autoapi", "sphinx-rtd-theme"],
         "magic": [
             "ipython",
             "sqlalchemy",

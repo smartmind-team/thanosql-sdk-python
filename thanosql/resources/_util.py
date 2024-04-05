@@ -5,7 +5,7 @@ from pandas._libs.lib import infer_dtype
 from pandas.core.series import Series
 
 from thanosql._error import ThanoSQLValueError
-    
+
 
 # get_sqlachmey_type has been created based on the _sqlalchemy_type function from pandas.io.sql.SQLTable()
 def get_sqlalchemy_type(column_values: Series):
@@ -47,7 +47,9 @@ def get_sqlalchemy_type(column_values: Series):
         elif column_value_dtype.lower() in ("uint16", "int32"):
             return "INT"
         elif column_value_dtype.lower() == "uint64":
-            raise ThanoSQLValueError("Unsigned 64 bit integer datatype is not supported")
+            raise ThanoSQLValueError(
+                "Unsigned 64 bit integer datatype is not supported"
+            )
         else:
             return "BIGINT"
     elif column_type == "mixed":
