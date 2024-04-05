@@ -37,8 +37,29 @@ class ThanoSQL(ThanoSQLBaseClient):
 
         super().__init__(token=api_token, base_url=engine_url, version=api_version)
 
-        self.file: FileService = FileService(self)
-        self.query: QueryService = QueryService(self)
-        self.schema: SchemaService = SchemaService(self)
-        self.table: TableService = TableService(self)
-        self.view: ViewService = ViewService(self)
+    @property
+    def query(self) -> QueryService:
+        """Access the QueryService."""
+        return QueryService(self)
+    
+    @property
+    def file(self) ->  FileService:
+        """Access the FileService."""
+        return FileService(self)
+    
+    @property
+    def schema(self) ->  SchemaService:
+        """Access the SchemaService."""
+        return SchemaService(self)
+    
+    @property
+    def table(self) ->  TableService:
+        """Access the TableService."""
+        return TableService(self)
+    
+    @property
+    def view(self) ->  ViewService:
+        """Access the ViewService."""
+        return ViewService(self)
+
+    
