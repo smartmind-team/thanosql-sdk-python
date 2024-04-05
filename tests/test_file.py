@@ -17,15 +17,13 @@ int_column_name = "price"
 # so for now we will have a dedicated, fixed folder name for all tests
 dir_name = "test"
 file_name = "file_image.jpeg"
-default_file_path = f"drive/image/{file_name}"
+default_file_path = f"drive/{file_name}"
 
 
 def test_upload_file(client: ThanoSQL, basic_table_name: str):
-    # nonexistent dir
+    # dir not subpath of drive/
     with pytest.raises(ThanoSQLValueError):
-        client.file.upload(path=file_name, dir=dir_name)
-
-    dir = f"drive/{dir_name}"
+        client.file.upload(path=file_name, dir="..")
 
     # nonexistent table
     with pytest.raises(ThanoSQLNotFoundError):
@@ -34,7 +32,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
             db_commit=True,
             table=fake.unique.pystr(8),
             column=column_name,
-            dir=dir,
+            dir=dir_name,
         )
 
     # nonexistent column
@@ -44,7 +42,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
             db_commit=True,
             table=basic_table_name,
             column=fake.unique.pystr(8),
-            dir=dir,
+            dir=dir_name,
         )
 
     # trying to insert text into integer column
@@ -54,7 +52,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
             db_commit=True,
             table=basic_table_name,
             column=int_column_name,
-            dir=dir,
+            dir=dir_name,
         )
 
     # upload without db_commit and dir
@@ -72,8 +70,9 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
         db_commit=True,
         table=basic_table_name,
         column=column_name,
-        dir=dir,
+        dir=dir_name,
     )
+    assert res["data"]["file_path"] == f"drive/{dir_name}/{file_name}"
     assert res["data"]["table_name"] == basic_table_name
     assert res["data"]["column_name"] == column_name
 
