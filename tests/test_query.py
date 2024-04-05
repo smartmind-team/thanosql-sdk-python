@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 
 from tests.faker import fake
@@ -10,7 +11,7 @@ from thanosql._error import (
     ThanoSQLNotFoundError,
     ThanoSQLValueError,
 )
-from thanosql.resources import QueryLog, QueryTemplate
+from thanosql.resources import QueryLog, QueryTemplate, Record
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -249,6 +250,24 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     assert res.destination_schema == "public"
     assert res.query == completed_changed_query
     assert res.destination_table_name == empty_table_name
+
+
+def test_query_log_records(client: ThanoSQL, empty_table):
+    # we want to check if the records section of QueryLog is working properly
+    # since we didn't create any tables in this module, we will use the
+    # empty_table fixture to ensure that there is at least one table in
+    # the list of public tables in information_schema
+    query = """
+    SELECT table_name FROM information_schema.tables
+    WHERE table_schema = 'public'
+    """
+    res = client.query.execute(query=query, max_results=100)
+    assert isinstance(res.records, Record)
+
+    # check if to_df is working and check that records is nonempty
+    df = res.records.to_df()
+    assert isinstance(df, pd.DataFrame)
+    assert len(df.index) > 0
 
 
 @pytest.mark.parametrize(

@@ -63,7 +63,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
 
     # upload with db_commit and dir
     target_table = client.table.get(name=basic_table_name)
-    record_count_before = target_table.get_records()["total"]
+    record_count_before = target_table.get_records().total
 
     res = client.file.upload(
         path=file_name,
@@ -76,7 +76,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
     assert res["data"]["table_name"] == basic_table_name
     assert res["data"]["column_name"] == column_name
 
-    record_count_after = target_table.get_records()["total"]
+    record_count_after = target_table.get_records().total
     assert record_count_after == record_count_before + 1
 
 
@@ -119,12 +119,12 @@ def test_delete_file(client: ThanoSQL, basic_table_name: str):
         )
 
     target_table = client.table.get(name=basic_table_name)
-    record_count_before = target_table.get_records()["total"]
+    record_count_before = target_table.get_records().total
 
     res = client.file.delete(
         path=path, db_commit=True, table=basic_table_name, column=column_name
     )
     assert "message" in res
 
-    record_count_after = target_table.get_records()["total"]
+    record_count_after = target_table.get_records().total
     assert record_count_after == record_count_before - 1

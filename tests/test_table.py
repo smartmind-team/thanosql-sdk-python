@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+import pandas as pd
 from typing import TYPE_CHECKING
 
 import pytest
@@ -18,6 +19,7 @@ from thanosql.resources import (
     BaseTable,
     Constraints,
     PrimaryKey,
+    Record,
     Table,
     TableObject,
 )
@@ -143,9 +145,14 @@ def test_insert_get_records_success(client: ThanoSQL, new_schema: str):
 
     # check if the records are successfully inserted
     res = target_table.get_records()
-    assert {"records", "total"} == set(res.keys())
-    assert res["total"] == len(records)
-    assert res["records"] == records
+    assert isinstance(res, Record)
+    assert res.total == len(records)
+    assert res.records == records
+
+    # check if records can be converted to df
+    df = res.to_df()
+    assert isinstance(df, pd.DataFrame)
+    assert len(df.index) == len(records)
 
 
 def test_upload_table_invalid(client: ThanoSQL, new_schema: str):
@@ -204,7 +211,7 @@ def test_upload_table_csv(client: ThanoSQL, basic_table_name: str):
     # check get records with limit in the meantime
     limit = 5
     res = target_table.get_records(limit=limit)
-    assert len(res["records"]) == limit
+    assert len(res.records) == limit
 
 
 def test_upload_table_excel(client: ThanoSQL, new_schema: str):
@@ -232,7 +239,7 @@ def test_upload_table_excel(client: ThanoSQL, new_schema: str):
     # check get records with limit in the meantime
     limit = 5
     res = target_table.get_records(limit=limit)
-    assert len(res["records"]) == limit
+    assert len(res.records) == limit
 
 
 def test_get_records_as_csv(client: ThanoSQL, new_schema: str):
