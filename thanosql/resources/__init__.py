@@ -19,4 +19,10 @@ from ._table import (
 )
 from ._view import View, ViewService
 
-__all__ = ["QueryService", "TableService", "ViewService", "SchemaService", "FileService"]
+__all__ = [
+    "QueryService",
+    "TableService",
+    "ViewService",
+    "SchemaService",
+    "FileService",
+]

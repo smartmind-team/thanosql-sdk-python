@@ -3,9 +3,9 @@ from __future__ import annotations
 import glob
 import logging
 import os
-import pandas as pd
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 
 from tests.faker import fake

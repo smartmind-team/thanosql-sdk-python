@@ -7,8 +7,8 @@ from pydantic import BaseModel, model_validator
 class Record(BaseModel):
     records: Optional[List[dict]] = None
     total: Optional[int] = None
-    
-    @model_validator(mode='before')
+
+    @model_validator(mode="before")
     @classmethod
     def convert_records_list_only(cls, data: Any) -> Any:
         if isinstance(data, list):
