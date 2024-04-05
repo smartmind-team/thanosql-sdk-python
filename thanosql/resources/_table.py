@@ -5,17 +5,16 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from pydantic import Field, TypeAdapter
 from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from pydantic import Field, TypeAdapter
 
 from thanosql._error import ThanoSQLAlreadyExistsError, ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql.resources._model import BaseModel
 from thanosql.resources._util import get_sqlalchemy_type
-
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -158,16 +157,16 @@ class TableService(ThanoSQLService):
         df: Optional[pd.DataFrame] = None,
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
-        if_exists: Optional[str] = None,
+        if_exists: str = "fail",
     ) -> Table:
         try:
             if_exists_enum = IfExists(if_exists)
         except Exception as e:
             raise ThanoSQLValueError(str(e))
-        
+
         if file:
             path = f"/{self.tag}/{name}/upload/"
-            
+
             file_extension = Path(file).suffix.lower()
             if file_extension == ".csv":
                 path = path + "csv"
@@ -186,9 +185,11 @@ class TableService(ThanoSQLService):
                     "Invalid format: only CSV and Excel files possible."
                 )
 
-            query_params = self._create_input_dict(schema=schema, if_exists=if_exists_enum.value)
+            query_params = self._create_input_dict(
+                schema=schema, if_exists=if_exists_enum.value
+            )
             payload = self._create_input_dict(table=table)
-            
+
             raw_response = self.client._request(
                 method="post",
                 path=path,
@@ -379,7 +380,9 @@ class DataFrameLoader:
         self.dtype_list: List[Tuple]
 
         self.df, self.dtype_list = self.load_df_to_object(df)
-        
+        # escape apostrophes in order to be able to insert them to SQL tables
+        self.df.replace("'", "''", regex=True, inplace=True)
+
         self.client: ThanoSQL = client
 
     def load_df_to_object(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Tuple]]:
@@ -423,7 +426,7 @@ class DataFrameLoader:
 
     def load_to_empty_table(
         self, name: str, schema: str, table: Optional[TableObject] = None
-    ) -> Union[Table, dict]:
+    ) -> Table:
         # Infer data types from df if the table body is not provided
         # otherwise, do not use the df and use the table body directly
         if not table:
@@ -431,9 +434,7 @@ class DataFrameLoader:
         self.client.table.create(name=name, schema=schema, table=table)
         return self.client.table.get(name=name, schema=schema)
 
-    def load_contents_to_table(
-        self, name: str, schema: str
-    ) -> Union[Table, dict]:
+    def load_contents_to_table(self, name: str, schema: str) -> Table:
         records = self.df.to_dict("records")
         target_table = self.client.table.get(name=name, schema=schema)
         target_table.insert(records=records)
@@ -448,19 +449,21 @@ class DataFrameLoader:
     ) -> Table:
         # first check if a table of the same name already exists
         existing_table = None
-        
+
         try:
             existing_table = self.client.table.get(name=name, schema=schema)
             if if_exists is IfExists.REPLACE:
                 self.client.table.delete(name=name, schema=schema)
                 # we deleted the table, so it no longer exists
                 existing_table = None
-        
+
         finally:
             # Don't create a new table if there is a table of the same name and if_exists is 'fail' or 'append'
             if existing_table and if_exists is IfExists.FAIL:
-                raise ThanoSQLAlreadyExistsError(f"{name} already exists. Set 'if_exists' as 'append' or 'replace' to append to or replace an already existing table.")
+                raise ThanoSQLAlreadyExistsError(
+                    f"{name} already exists. Set 'if_exists' as 'append' or 'replace' to append to or replace an already existing table."
+                )
             if not existing_table:
                 self.load_to_empty_table(name=name, schema=schema, table=table)
-        
+
             return self.load_contents_to_table(name=name, schema=schema)
