@@ -155,6 +155,12 @@ def test_upload_table_invalid(client: ThanoSQL, new_schema: str):
     with pytest.raises(ThanoSQLValueError):
         client.table.upload(name=test_table_name)
 
+    # file and df cannot be provided at the same time
+    with pytest.raises(ThanoSQLValueError):
+        client.table.upload(
+            name=test_table_name, file="file_csv.csv", df=pd.DataFrame()
+        )
+
     # only CSV or Excel accepted
     with pytest.raises(ThanoSQLValueError):
         client.table.upload(name=test_table_name, file="file_txt.txt")

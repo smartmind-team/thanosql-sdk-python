@@ -164,6 +164,11 @@ class TableService(ThanoSQLService):
         except Exception as e:
             raise ThanoSQLValueError(str(e))
 
+        if file and df is not None:
+            raise ThanoSQLValueError(
+                "Cannot use both file and DataFrame for upload at the same time."
+            )
+
         if file:
             path = f"/{self.tag}/{name}/upload/"
 
