@@ -20,6 +20,14 @@ class View(BaseModel):
 
 
 class ViewService(ThanoSQLService):
+    """Service layer for view methods.
+
+    Attributes
+    ----------
+    client: ThanoSQL
+        The ThanoSQL client used to make requests to the engine.
+    
+    """
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="view")
 
@@ -30,6 +38,32 @@ class ViewService(ThanoSQLService):
         offset: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> List[View]:
+        """Lists views stored in the workspace.
+
+        Parameters
+        ----------
+        schema: str, optional
+            When specified, lists views from a specific schema only.
+            Otherwise, lists views from all available schemas.
+        verbose: bool, optional
+            When not set or set to False (default behavior), only lists
+            view names and the schema they belong to. When set to True,
+            includes column descriptions and view definition in the output
+            on top of the basic (name and schema) information.
+        offset: int, optional
+            When set to n, skips the first n views and excludes them from
+            the output list. Otherwise, starts the list from the first view
+            stored. Must be greater than 0.
+        limit: int, optional
+            When set to n, limits the number of views listed to n. Otherwise,
+            lists up to 100 views per call. Must range between 1 to 100.
+        
+        Returns
+        -------
+        List[View]
+            A list of View objects.
+
+        """
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema,
@@ -47,6 +81,22 @@ class ViewService(ThanoSQLService):
         return parsed_response
 
     def get(self, name: str, schema: Optional[str] = None) -> View:
+        """Shows the details of a view stored in the workspace.
+
+        Parameters
+        ----------
+        name: str
+            The name of the view to be retrieved.
+        schema: str, optional
+            The schema the target view is stored in. When not specified,
+            defaults to "public".
+
+        Returns
+        -------
+        View
+            A View object.
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
@@ -59,6 +109,22 @@ class ViewService(ThanoSQLService):
         return parsed_response
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
+        """Deletes a view from the workspace.
+
+        Parameters
+        ----------
+        name: str
+            The name of the view to be deleted.
+        schema: str, optional
+            The schema the target view is stored in. When not specified,
+            defaults to "public".
+
+        Returns
+        -------
+        dict
+            A dictionary containing a success message and the name of the view.
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 

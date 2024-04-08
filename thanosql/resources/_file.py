@@ -10,10 +10,43 @@ if TYPE_CHECKING:
 
 
 class FileService(ThanoSQLService):
+    """Service layer for file methods.
+
+    Attributes
+    ----------
+    client: ThanoSQL
+        The ThanoSQL client used to make requests to the engine.
+    
+    """
+
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="file")
 
     def list(self, path: Union[str, os.PathLike]) -> dict:
+        """Lists all files and directories under a specified path.
+        
+        Parameters
+        ----------
+        path: str or path_like
+            The path that contains the files and directories to be listed.
+            Regex pattern is recommended.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the list of files and folders under
+            the input path in the format:
+
+            ```python
+            {
+                "data": {
+                    "matched_pathnames": [list of matched pathnames],
+                }
+            }
+            ```
+
+        """
+
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(search_path=path)
 
