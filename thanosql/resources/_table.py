@@ -367,7 +367,9 @@ class DataFrameLoader:
     Parameters
     ----------
     df : pd.DataFrame
-        The DataFrame containing the data to be loaded.
+        The DataFrame containing the data to be loaded
+    client: ThanoSQL
+        The ThanoSQL client to be used by the loader
 
     Attributes
     ----------
@@ -375,9 +377,9 @@ class DataFrameLoader:
         Processed DataFrame
     dtype_list : List[tuple]
         List of tuples of columns and data types of the columns in the DataFrame
+    client: ThanoSQL
+        ThanoSQL client to make requests to the engine
 
-    Methods
-    -------
     """
 
     def __init__(self, df: pd.DataFrame, client: ThanoSQL) -> None:
