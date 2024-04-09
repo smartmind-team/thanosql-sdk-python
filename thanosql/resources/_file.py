@@ -37,13 +37,11 @@ class FileService(ThanoSQLService):
             A dictionary containing the list of files and folders under
             the input path in the format:
 
-            ```python
             {
                 "data": {
                     "matched_pathnames": [list of matched pathnames],
                 }
             }
-            ```
 
         """
 
@@ -62,6 +60,44 @@ class FileService(ThanoSQLService):
         column: Optional[str] = None,
         dir: Optional[str] = None,
     ) -> dict:
+        """Uploads a file to the workspace.
+
+        Parameters
+        ----------
+        path: str or path_like
+            The path to the local file to be uploaded to the workspace.
+        db_commit: bool, optional
+            Whether to save the uploaded file path to a table or not.
+        table: str, optional
+            The name of the table to save the uploaded file path in.
+            Only relevant if db_commit is set to True.
+        column: str, optional
+            The column name in the table where the uploaded file path will be
+            saved in. Only relevant if db_commit is set to True.
+        schema: str, optional
+            The schema where the table to save the uploaded file path in resides.
+            Only relevant if db_commit is set to True and defaults to "public".
+        dir: str, optional
+            Path to directory under drive/ to store the uploaded file in.
+            If the directory does not exist, it will be created by the API.
+
+        Returns
+        -------
+        dict
+            Dictionary containing values of "file_path", "table_name", "column_name",
+            and "schema". "file_path" will always be returned, while the rest are
+            only returned if db_commit is set to True.
+
+            {
+                "data": {
+                    "file_path": file_path,
+                    "table_name": table_name | null,
+                    "column_name": column_name | null,
+                    "schema": schema | null
+                }
+            }
+
+        """
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             db_commit=db_commit, table_name=table, column_name=column, dir=dir
@@ -78,6 +114,31 @@ class FileService(ThanoSQLService):
         table: Optional[str] = None,
         column: Optional[str] = None,
     ) -> dict:
+        """Deletes a file from the workspace.
+
+        Parameters
+        ----------
+        path: str or path_like
+            The path to the file to be removed from the workspace.
+        db_commit: bool, optional
+            Whether to remove the file path from a table or not.
+        table: str, optional
+            The name of the table where the file path to be removed is in.
+            Only relevant if db_commit is set to True.
+        column: str, optional
+            The column name in the table where the file path to be removed
+            is in. Only relevant if db_commit is set to True.
+        schema: str, optional
+            The schema where the table to remove the file path from resides.
+            Only relevant if db_commit is set to True and defaults to "public".
+
+        Returns
+        -------
+        dict
+            A dictionary object containing a success message.
+
+        """
+
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             file_path=path, db_commit=db_commit, table_name=table, column_name=column
