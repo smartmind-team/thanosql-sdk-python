@@ -27,7 +27,7 @@ class ThanoSQL(ThanoSQLBaseClient):
             raise ThanoSQLValueError(
                 "Please input a valid API token. You can do this either by passing it as a parameter or setting the THANOSQL_API_TOKEN environment variable."
             )
-        
+
         if engine_url is None:
             engine_url = os.environ.get("THANOSQL_ENGINE_URL", "")
         if not engine_url:
@@ -41,25 +41,23 @@ class ThanoSQL(ThanoSQLBaseClient):
     def query(self) -> QueryService:
         """Access the QueryService."""
         return QueryService(self)
-    
+
     @property
-    def file(self) ->  FileService:
+    def file(self) -> FileService:
         """Access the FileService."""
         return FileService(self)
-    
+
     @property
-    def schema(self) ->  SchemaService:
+    def schema(self) -> SchemaService:
         """Access the SchemaService."""
         return SchemaService(self)
-    
+
     @property
-    def table(self) ->  TableService:
+    def table(self) -> TableService:
         """Access the TableService."""
         return TableService(self)
-    
+
     @property
-    def view(self) ->  ViewService:
+    def view(self) -> ViewService:
         """Access the ViewService."""
         return ViewService(self)
-
-    
