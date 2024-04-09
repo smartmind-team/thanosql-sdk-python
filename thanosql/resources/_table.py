@@ -10,7 +10,7 @@ from pydantic import Field, TypeAdapter
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql.resources._model import BaseModel
-from thanosql.resources._record import Record
+from thanosql.resources._record import Records
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -280,7 +280,7 @@ class Table(BaseTable):
         self,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> Record:
+    ) -> Records:
         path = f"/{self.service.tag}/{self.name}/records"
 
         query_params = self.service._create_input_dict(
@@ -294,7 +294,7 @@ class Table(BaseTable):
             path=path,
             query_params=query_params,
         )
-        return Record(**records)
+        return Records(**records)
 
     def get_records_as_csv(
         self,

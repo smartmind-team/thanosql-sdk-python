@@ -9,7 +9,7 @@ from pydantic import TypeAdapter
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql.resources._model import BaseModel
-from thanosql.resources._record import Record
+from thanosql.resources._record import Records
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -27,7 +27,7 @@ class QueryLog(BaseModel):
     destination_schema: Optional[str]
     error_result: Optional[str]
     created_at: Optional[datetime]
-    records: Optional[Record] = None
+    records: Optional[Records] = None
 
 
 class QueryType(enum.Enum):

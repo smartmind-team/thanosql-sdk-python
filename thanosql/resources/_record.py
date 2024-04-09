@@ -1,12 +1,12 @@
-from typing import Any, List, Optional
+from typing import Any, List
 
 import pandas as pd
 from pydantic import BaseModel, model_validator
 
 
-class Record(BaseModel):
-    records: Optional[List[dict]] = None
-    total: Optional[int] = None
+class Records(BaseModel):
+    records: List[dict] = []
+    total: int = 0
 
     @model_validator(mode="before")
     @classmethod
