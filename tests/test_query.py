@@ -221,7 +221,7 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     assert res.destination_schema == "qm"
     assert res.query == completed_changed_query
 
-    # there should be no records even if max_results is > 0 as we set LIMIT 0 in the query
+    # there should be empty record([]) even if max_results is > 0 as we set LIMIT 0 in the query
     assert len(res.records.records) == 0
 
     # make sure the qm table is created
