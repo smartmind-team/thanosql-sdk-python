@@ -1,7 +1,9 @@
 from typing import Any, List
 
 import pandas as pd
-from pydantic import BaseModel, model_validator
+from pydantic import model_validator
+
+from thanosql.resources._model import BaseModel
 
 
 class Records(BaseModel):
@@ -14,9 +16,6 @@ class Records(BaseModel):
         if isinstance(data, list):
             return {"records": data, "total": len(data)}
         return data
-
-    def __repr__(self) -> str:
-        return self.model_dump_json(indent=4)
 
     def to_df(self, **kwargs) -> pd.DataFrame:
         return pd.DataFrame.from_records(self.records, **kwargs)
