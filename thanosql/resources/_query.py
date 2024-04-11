@@ -35,6 +35,18 @@ class QueryType(enum.Enum):
 
 
 class QueryService(ThanoSQLService):
+    """Service layer for query methods.
+
+    Attributes
+    ----------
+    client: ThanoSQL
+        The ThanoSQL client used to make requests to the engine.
+    log: QueryLogService
+        The query log service layer to access methods involving query logs.
+    template: QueryTemplateService
+        The query template service layer to access methods involving query templates.
+    """
+
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="query")
 
@@ -53,6 +65,60 @@ class QueryService(ThanoSQLService):
         overwrite: Optional[bool] = None,
         max_results: Optional[int] = None,
     ) -> QueryLog:
+        """Executes a query string.
+
+        There are three ways of requesting a query:
+        
+        - Using a complete query directly in `query`, leaving
+          `template_id`, `template_name`, and `parameters` empty.
+        - Using a template query in `query` and completing it with `parameters`,
+          leaving `template_id` and `template_name` empty.
+        - Recalling a template query from the database using `template_id` or
+          `template_name` (but not both) and completing it with `parameters`,
+          leaving `query` empty.
+        
+        One, and only one, of these ways must be chosen. That is, exactly one of
+        `query`, `template_id`, or `template_name` must be specified. If none or
+        more than one way is selected, an error will occur.
+
+        Parameters
+        ----------
+        query: str, optional
+            The query string or template to be executed.
+        query_type: str, default "thanosql"
+            The type of the query to be executed. Can only be one of
+            "thanosql" or "psql".
+        template_id: int, optional
+            The ID number of the query template to be used.
+            Only relevant when a query template from the database is needed,
+            and `query` and `template_name` are not used simultaneously.
+        template_name: str, optional
+            The name of the query template to be used.
+            Only relevant when a query template from the database is needed,
+            and `query` and `template_id` are not used simultaneously.
+        parameters: dict, optional
+            A dictionary of parameter names and values to fill in the template.
+            Only relevant when a query template, either from `query` or the database,
+            is used.
+        schema: str, optional
+            The schema of the table to save the query results in.
+        table_name: str, optional
+            The name of the table to save the query results in.
+        overwrite: bool, optional
+            Whether to overwrite the table if a table with the same `table_name`
+            and `schema` already exists.
+        max_results: int, optional
+            The maximum number of records to be returned by the response QueryLog.
+            If not specified, the `records` part of QueryLog will be None, even
+            when the query produces some records.
+
+        Returns
+        -------
+        QueryLog
+            A query log object containing details about the results of the
+            executed query.
+
+        """
         try:
             query_type_enum = QueryType(query_type)
         except Exception as e:
@@ -83,7 +149,9 @@ class QueryService(ThanoSQLService):
 
 
 class QueryLogService(ThanoSQLService):
-    """Cannot exist without a parent QueryService"""
+    """Service layer for query log methods.
+    
+    Cannot exist without a parent QueryService."""
 
     def __init__(self, query: QueryService) -> None:
         super().__init__(client=query.client, tag="log")
@@ -96,6 +164,22 @@ class QueryLogService(ThanoSQLService):
         offset: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> dict:
+        """_summary_
+
+        Parameters
+        ----------
+        search : Optional[str], optional
+            _description_, by default None
+        offset : Optional[int], optional
+            _description_, by default None
+        limit : Optional[int], optional
+            _description_, by default None
+
+        Returns
+        -------
+        dict
+            _description_
+        """
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
             search=search, offset=offset, limit=limit
@@ -146,6 +230,24 @@ class QueryTemplateService(ThanoSQLService):
         limit: Optional[int] = None,
         order_by: Optional[str] = None,
     ) -> List[QueryTemplate]:
+        """_summary_
+
+        Parameters
+        ----------
+        search : Optional[str], optional
+            _description_, by default None
+        offset : Optional[int], optional
+            _description_, by default None
+        limit : Optional[int], optional
+            _description_, by default None
+        order_by : Optional[str], optional
+            _description_, by default None
+
+        Returns
+        -------
+        List[QueryTemplate]
+            _description_
+        """
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
             search=search, offset=offset, limit=limit, order_by=order_by
@@ -167,6 +269,22 @@ class QueryTemplateService(ThanoSQLService):
         query: Optional[str] = None,
         dry_run: Optional[bool] = None,
     ) -> QueryTemplate:
+        """_summary_
+
+        Parameters
+        ----------
+        name : Optional[str], optional
+            _description_, by default None
+        query : Optional[str], optional
+            _description_, by default None
+        dry_run : Optional[bool], optional
+            _description_, by default None
+
+        Returns
+        -------
+        QueryTemplate
+            _description_
+        """
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(dry_run=dry_run)
         payload = self._create_input_dict(name=name, query=query)
@@ -178,6 +296,18 @@ class QueryTemplateService(ThanoSQLService):
         return self._parse_query_template_response(raw_response)
 
     def get(self, name: str) -> QueryTemplate:
+        """_summary_
+
+        Parameters
+        ----------
+        name : str
+            _description_
+
+        Returns
+        -------
+        QueryTemplate
+            _description_
+        """
         path = f"/{self.query.tag}/{self.tag}/{name}"
         raw_response = self.client._request(method="get", path=path)
         return self._parse_query_template_response(raw_response)
@@ -188,6 +318,22 @@ class QueryTemplateService(ThanoSQLService):
         new_name: Optional[str] = None,
         query: Optional[str] = None,
     ) -> QueryTemplate:
+        """_summary_
+
+        Parameters
+        ----------
+        current_name : str
+            _description_
+        new_name : Optional[str], optional
+            _description_, by default None
+        query : Optional[str], optional
+            _description_, by default None
+
+        Returns
+        -------
+        QueryTemplate
+            _description_
+        """
         path = f"/{self.query.tag}/{self.tag}/{current_name}"
         payload = self._create_input_dict(name=new_name, query=query)
 
@@ -196,6 +342,18 @@ class QueryTemplateService(ThanoSQLService):
         return self._parse_query_template_response(raw_response)
 
     def delete(self, name: str) -> dict:
+        """_summary_
+
+        Parameters
+        ----------
+        name : str
+            _description_
+
+        Returns
+        -------
+        dict
+            _description_
+        """
         path = f"/{self.query.tag}/{self.tag}/{name}"
 
         return self.client._request(method="delete", path=path)

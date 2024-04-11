@@ -18,7 +18,6 @@ class FileService(ThanoSQLService):
         The ThanoSQL client used to make requests to the engine.
     
     """
-
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="file")
 
@@ -44,7 +43,6 @@ class FileService(ThanoSQLService):
             }
 
         """
-
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(search_path=path)
 
@@ -138,7 +136,6 @@ class FileService(ThanoSQLService):
             A dictionary object containing a success message.
 
         """
-
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             file_path=path, db_commit=db_commit, table_name=table, column_name=column
