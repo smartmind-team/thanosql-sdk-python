@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import enum
+import json
 import os
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
+import pandas as pd
 from pydantic import Field, TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
@@ -65,6 +68,12 @@ class BaseTable(BaseModel):
 class TableObject(BaseModel):
     columns: Optional[List[BaseColumn]] = None
     constraints: Optional[Constraints] = None
+
+
+class IfExists(enum.Enum):
+    FAIL = "fail"
+    APPEND = "append"
+    REPLACE = "replace"
 
 
 class TableService(ThanoSQLService):
@@ -143,43 +152,79 @@ class TableService(ThanoSQLService):
     def upload(
         self,
         name: str,
-        file: Union[str, os.PathLike],
+        file: Optional[Union[str, os.PathLike]] = None,
+        df: Optional[pd.DataFrame] = None,
         schema: Optional[str] = None,
         table: Optional[TableObject] = None,
-        if_exists: Optional[str] = None,
+        if_exists: str = "fail",
     ) -> Table:
-        path = f"/{self.tag}/{name}/upload/"
+        try:
+            if_exists_enum = IfExists(if_exists)
+        except Exception as e:
+            raise ThanoSQLValueError(str(e))
 
-        file_extension = Path(file).suffix.lower()
-        if file_extension == ".csv":
-            path = path + "csv"
-        elif file_extension in [
-            ".xls",
-            ".xlsx",
-            ".xlsm",
-            ".xlsb",
-            ".odf",
-            ".ods",
-            ".odt",
-        ]:
-            path = path + "excel"
-        else:
+        if file and df is not None:
             raise ThanoSQLValueError(
-                "Invalid format: only CSV and Excel files possible."
+                "Cannot use both file and DataFrame for upload at the same time."
             )
 
-        query_params = self._create_input_dict(schema=schema, if_exists=if_exists)
-        payload = self._create_input_dict(table=table)
+        if file:
+            path = f"/{self.tag}/{name}/upload/"
 
-        raw_response = self.client._request(
-            method="post",
-            path=path,
-            query_params=query_params,
-            payload=payload,
-            file=file,
-        )
+            file_extension = Path(file).suffix.lower()
+            if file_extension == ".csv":
+                path = path + "csv"
+            elif file_extension in [
+                ".xls",
+                ".xlsx",
+                ".xlsm",
+                ".xlsb",
+                ".odf",
+                ".ods",
+                ".odt",
+            ]:
+                path = path + "excel"
+            else:
+                raise ThanoSQLValueError(
+                    "Invalid format: only CSV and Excel files possible."
+                )
 
-        return self._parse_table_response(raw_response)
+            query_params = self._create_input_dict(
+                schema=schema, if_exists=if_exists_enum.value
+            )
+            payload = self._create_input_dict(table=table)
+
+            raw_response = self.client._request(
+                method="post",
+                path=path,
+                query_params=query_params,
+                payload=payload,
+                file=file,
+            )
+
+            return self._parse_table_response(raw_response)
+
+        elif df is not None:
+            path = f"/{self.tag}/{name}/upload/json"
+
+            df_json = df.to_dict(orient="records")
+            query_params = self._create_input_dict(
+                schema=schema, if_exists=if_exists_enum.value
+            )
+            payload = self._create_input_dict(table=table, data=df_json)
+
+            raw_response = self.client._request(
+                method="post",
+                path=path,
+                query_params=query_params,
+                payload=payload,
+                file=file,
+            )
+
+            return self._parse_table_response(raw_response)
+
+        else:
+            raise ThanoSQLValueError("No file or DataFrame provided for upload")
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
         path = f"/{self.tag}/{name}"
@@ -188,6 +233,58 @@ class TableService(ThanoSQLService):
         return self.client._request(
             method="delete", path=path, query_params=query_params
         )
+
+
+class Table(BaseTable):
+    service: Optional[TableService] = None
+
+    def get_records(
+        self,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+    ) -> Records:
+        path = f"/{self.service.tag}/{self.name}/records"
+
+        query_params = self.service._create_input_dict(
+            schema=self.table_schema,
+            offset=offset,
+            limit=limit,
+        )
+
+        res = self.service.client._request(
+            method="get",
+            path=path,
+            query_params=query_params,
+        )
+        return Records(data=res["records"], total=res["total"])
+
+    def get_records_as_csv(
+        self,
+        timezone_offset: Optional[int] = None,
+    ) -> None:
+        path = f"/{self.service.tag}/{self.name}/records/csv"
+
+        query_params = self.service._create_input_dict(
+            schema=self.table_schema,
+            timezone_offset=timezone_offset,
+        )
+
+        self.service.client._request(
+            method="get", path=path, query_params=query_params, stream=True
+        )
+
+    def insert(
+        self,
+        records: List[dict],
+    ) -> Union[Table, dict]:
+        path = f"/{self.service.tag}/{self.name}/records"
+        query_params = self.service._create_input_dict(schema=self.table_schema)
+
+        raw_response = self.service.client._request(
+            method="post", path=path, query_params=query_params, payload=records
+        )
+
+        return self.service._parse_table_response(raw_response)
 
 
 class TableTemplate(BaseModel):
@@ -271,55 +368,3 @@ class TableTemplateService(ThanoSQLService):
         return self.client._request(
             method="delete", path=path, query_params=query_params
         )
-
-
-class Table(BaseTable):
-    service: Optional[TableService] = None
-
-    def get_records(
-        self,
-        offset: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> Records:
-        path = f"/{self.service.tag}/{self.name}/records"
-
-        query_params = self.service._create_input_dict(
-            schema=self.table_schema,
-            offset=offset,
-            limit=limit,
-        )
-
-        res = self.service.client._request(
-            method="get",
-            path=path,
-            query_params=query_params,
-        )
-        return Records(data=res["records"], total=res["total"])
-
-    def get_records_as_csv(
-        self,
-        timezone_offset: Optional[int] = None,
-    ) -> None:
-        path = f"/{self.service.tag}/{self.name}/records/csv"
-
-        query_params = self.service._create_input_dict(
-            schema=self.table_schema,
-            timezone_offset=timezone_offset,
-        )
-
-        self.service.client._request(
-            method="get", path=path, query_params=query_params, stream=True
-        )
-
-    def insert(
-        self,
-        records: List[dict],
-    ) -> Union[Table, dict]:
-        path = f"/{self.service.tag}/{self.name}/records"
-        query_params = self.service._create_input_dict(schema=self.table_schema)
-
-        raw_response = self.service.client._request(
-            method="post", path=path, query_params=query_params, payload=records
-        )
-
-        return self.service._parse_table_response(raw_response)
