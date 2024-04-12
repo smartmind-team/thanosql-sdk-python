@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pandas as pd
 import pytest
 
 from tests.faker import fake
@@ -10,7 +11,7 @@ from thanosql._error import (
     ThanoSQLNotFoundError,
     ThanoSQLValueError,
 )
-from thanosql.resources import QueryLog, QueryTemplate
+from thanosql.resources import QueryLog, QueryTemplate, Records
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -27,7 +28,7 @@ changed_query_template_name = (
 
 plain_query_template_string = "LIST THANOSQL MODEL"
 basic_query_template_string = "SELECT * FROM {{ table_name }}"
-changed_query_template_string = "SELECT {% for col in columns %}{{ col }}{% if not loop.last %}, {% endif %}{% endfor %} FROM {{ table_name }}"
+changed_query_template_string = "SELECT {% for col in columns %}{{ col }}{% if not loop.last %}, {% endif %}{% endfor %} FROM {{ table_name }} LIMIT 0"
 invalid_query_template_string = "DELETE MODEL {% model_name %}"
 
 query_test_table_name = (
@@ -209,14 +210,19 @@ def test_post_query_invalid(client: ThanoSQL, basic_table_name: str):
 
 def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name):
     params = {"table_name": basic_table_name, "columns": query_test_selected_columns}
-    completed_changed_query = f"SELECT name, price FROM {basic_table_name}"
+    completed_changed_query = f"SELECT name, price FROM {basic_table_name} LIMIT 0"
 
     # direct entry template
-    res = client.query.execute(query=changed_query_template_string, parameters=params)
+    res = client.query.execute(
+        query=changed_query_template_string, parameters=params, max_results=10
+    )
     assert isinstance(res, QueryLog)
     assert res.error_result is None
     assert res.destination_schema == "qm"
     assert res.query == completed_changed_query
+
+    # there should be empty record([]) even if max_results is > 0 as we set LIMIT 0 in the query
+    assert len(res.records.data) == 0
 
     # make sure the qm table is created
     qm_table_name = res.destination_table_name
@@ -232,6 +238,9 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     assert res.destination_schema == "public"
     assert res.query == plain_query_template_string
     assert res.destination_table_name == query_test_table_name
+
+    # since max_results is 0 by default, there should be no records at all
+    assert res.records is None
 
     # make sure the table is created in public schema
     res = client.table.get(name=query_test_table_name)
@@ -249,6 +258,24 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     assert res.destination_schema == "public"
     assert res.query == completed_changed_query
     assert res.destination_table_name == empty_table_name
+
+
+def test_query_log_records(client: ThanoSQL, empty_table):
+    # we want to check if the records section of QueryLog is working properly
+    # since we didn't create any tables in this module, we will use the
+    # empty_table fixture to ensure that there is at least one table in
+    # the list of public tables in information_schema
+    query = """
+    SELECT table_name FROM information_schema.tables
+    WHERE table_schema = 'public'
+    """
+    res = client.query.execute(query=query, max_results=100)
+    assert isinstance(res.records, Records)
+
+    # check if to_df is working and check that records is nonempty
+    df = res.records.to_df()
+    assert isinstance(df, pd.DataFrame)
+    assert len(df.index) > 0
 
 
 @pytest.mark.parametrize(

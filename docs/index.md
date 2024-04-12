@@ -1,4 +1,5 @@
 ```{include} ../README.md
+
 ```
 
 ## Contents
@@ -11,7 +12,7 @@ caption: Tutorials
 examples
 ```
 
-```{toctree} 
+```{toctree}
 ---
 maxdepth: 2
 caption: Reference

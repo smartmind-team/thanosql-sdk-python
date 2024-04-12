@@ -6,9 +6,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = u"thanosql"
-copyright = u"2024, SmartMind"
-author = u"SmartMind"
+project = "thanosql"
+copyright = "2024, SmartMind"
+author = "SmartMind"
 
 # -- General configuration ---------------------------------------------------
 
@@ -24,7 +24,7 @@ extensions = [
 nb_remove_code_outputs = True
 
 autoapi_dirs = ["../thanosql"]
-autoapi_ignore = ['*magic*']
+autoapi_ignore = ["*magic*"]
 autoapi_options = [
     "members",
     "undoc-members",
@@ -47,10 +47,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 #
 html_theme = "sphinx_rtd_theme"
 
+
 def skip_submodules(app, what, name, obj, skip, options):
     if what == "module":
         skip = True
     return skip
+
 
 def setup(sphinx):
     sphinx.connect("autoapi-skip-member", skip_submodules)
