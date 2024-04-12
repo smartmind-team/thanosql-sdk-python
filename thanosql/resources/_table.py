@@ -294,7 +294,7 @@ class Table(BaseTable):
             path=path,
             query_params=query_params,
         )
-        return Records(**records)
+        return Records(data=records["records"], total=records["total"])
 
     def get_records_as_csv(
         self,
