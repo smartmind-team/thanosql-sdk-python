@@ -249,7 +249,7 @@ def test_upload_table_excel(client: ThanoSQL, new_schema: str):
 
 # we do more thorough testing for upload with df as it is an SDK-exclusive feature
 def test_upload_table_df(client: ThanoSQL):
-    df = pd.read_excel("file_excel.xlsx")
+    df = pd.read_csv("file_csv.csv")
 
     # make sure a new table is created even if if_exists is 'append' if
     # the name is not already taken by another table

@@ -31,7 +31,6 @@ setup(
     keywords="smartmind thanosql sdk",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=[
-        "numpy",
         "openpyxl",
         "pandas",
         "pydantic>=2.0",
@@ -45,6 +44,7 @@ setup(
             "ipython",
             "sqlalchemy",
             "matplotlib",
+            "numpy",
             "websocket-client",
             "pglast",
         ],

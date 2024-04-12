@@ -5,16 +5,14 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
-import numpy as np
 import pandas as pd
 from pydantic import Field, TypeAdapter
 
-from thanosql._error import ThanoSQLAlreadyExistsError, ThanoSQLValueError
+from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql.resources._model import BaseModel
-from thanosql.resources._util import get_sqlalchemy_type
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
@@ -206,13 +204,23 @@ class TableService(ThanoSQLService):
             return self._parse_table_response(raw_response)
 
         elif df is not None:
-            df_loader = DataFrameLoader(df=df, client=self.client)
-            return df_loader.load_df_to_table(
-                name=name,
-                schema=schema,
-                table=table,
-                if_exists=if_exists_enum,
+            path = f"/{self.tag}/{name}/upload/json"
+
+            df_json = df.to_dict(orient="records")
+            query_params = self._create_input_dict(
+                schema=schema, if_exists=if_exists_enum.value
             )
+            payload = self._create_input_dict(table=table, data=df_json)
+
+            raw_response = self.client._request(
+                method="post",
+                path=path,
+                query_params=query_params,
+                payload=payload,
+                file=file,
+            )
+
+            return self._parse_table_response(raw_response)
 
         else:
             raise ThanoSQLValueError("No file or DataFrame provided for upload")
@@ -358,119 +366,3 @@ class TableTemplateService(ThanoSQLService):
         return self.client._request(
             method="delete", path=path, query_params=query_params
         )
-
-
-class DataFrameLoader:
-    """
-    Class for loading data from a pandas DataFrame and loading them into a PostgreSQL database.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        The DataFrame containing the data to be loaded
-    client: ThanoSQL
-        The ThanoSQL client to be used by the loader
-
-    Attributes
-    ----------
-    df : pd.DataFrame
-        Processed DataFrame
-    dtype_list : List[tuple]
-        List of tuples of columns and data types of the columns in the DataFrame
-    client: ThanoSQL
-        ThanoSQL client to make requests to the engine
-
-    """
-
-    def __init__(self, df: pd.DataFrame, client: ThanoSQL) -> None:
-        self.df: pd.DataFrame
-        self.dtype_list: List[Tuple]
-
-        self.df, self.dtype_list = self.load_df_to_object(df)
-        # escape apostrophes in order to be able to insert them to SQL tables
-        self.df.replace("'", "''", regex=True, inplace=True)
-
-        self.client: ThanoSQL = client
-
-    def load_df_to_object(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, List[Tuple]]:
-        df_columns = df.columns.tolist()
-        dtype_list = []
-
-        for column_name in df_columns:
-            if df.empty:
-                dtype = "SMALLINT"
-            else:
-                column_values = df[column_name]
-
-                column_value = column_values.iloc[0]
-                dtype = get_sqlalchemy_type(column_values)
-
-                if isinstance(column_value, (np.ndarray, list)):
-                    if isinstance(column_value, np.ndarray):
-                        df[column_name] = df[column_name].apply(
-                            lambda row: row.tolist()
-                        )
-
-                    array = np.array(column_value)
-                    dtype_dimension = "[]" * array.ndim
-                    column_value = array.flat[0]
-                    dtype = get_sqlalchemy_type(pd.Series(column_value))
-                    dtype += dtype_dimension  # eg) INT[][][]
-
-                elif isinstance(column_value, dict):
-                    df[column_name] = df[column_name].apply(json.dumps)
-
-            dtype_list.append((column_name, dtype))  # eg) (number, INT)
-
-        return df, dtype_list
-
-    def assemble_columns(self) -> TableObject:
-        columns = []
-        for col, col_type in self.dtype_list:
-            columns.append(BaseColumn(type=col_type, name=col))
-
-        return TableObject(columns=columns)
-
-    def load_to_empty_table(
-        self, name: str, schema: str, table: Optional[TableObject] = None
-    ) -> Table:
-        # Infer data types from df if the table body is not provided
-        # otherwise, do not use the df and use the table body directly
-        if not table:
-            table = self.assemble_columns()
-        self.client.table.create(name=name, schema=schema, table=table)
-        return self.client.table.get(name=name, schema=schema)
-
-    def load_contents_to_table(self, name: str, schema: str) -> Table:
-        records = self.df.to_dict("records")
-        target_table = self.client.table.get(name=name, schema=schema)
-        target_table.insert(records=records)
-        return target_table
-
-    def load_df_to_table(
-        self,
-        name: str,
-        schema: str = "public",
-        table: Optional[TableObject] = None,
-        if_exists: IfExists = IfExists.FAIL,
-    ) -> Table:
-        # first check if a table of the same name already exists
-        existing_table = None
-
-        try:
-            existing_table = self.client.table.get(name=name, schema=schema)
-            if if_exists is IfExists.REPLACE:
-                self.client.table.delete(name=name, schema=schema)
-                # we deleted the table, so it no longer exists
-                existing_table = None
-
-        finally:
-            # Don't create a new table if there is a table of the same name and if_exists is 'fail' or 'append'
-            if existing_table and if_exists is IfExists.FAIL:
-                raise ThanoSQLAlreadyExistsError(
-                    f"{name} already exists. Set 'if_exists' as 'append' or 'replace' to append to or replace an already existing table."
-                )
-            if not existing_table:
-                self.load_to_empty_table(name=name, schema=schema, table=table)
-
-            return self.load_contents_to_table(name=name, schema=schema)
