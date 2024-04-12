@@ -289,12 +289,12 @@ class Table(BaseTable):
             limit=limit,
         )
 
-        records = self.service.client._request(
+        res = self.service.client._request(
             method="get",
             path=path,
             query_params=query_params,
         )
-        return Records(data=records["records"], total=records["total"])
+        return Records(data=res["records"], total=res["total"])
 
     def get_records_as_csv(
         self,
