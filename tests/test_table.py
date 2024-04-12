@@ -19,6 +19,7 @@ from thanosql.resources import (
     BaseTable,
     Constraints,
     PrimaryKey,
+    Records,
     Table,
     TableObject,
 )
@@ -145,9 +146,22 @@ def test_insert_get_records_success(client: ThanoSQL, new_schema: str):
 
     # check if the records are successfully inserted
     res = target_table.get_records()
-    assert {"records", "total"} == set(res.keys())
-    assert res["total"] == len(records)
-    assert res["records"] == records
+    assert isinstance(res, Records)
+    assert res.total == len(records)
+    assert res.data == records
+
+    # check if records can be converted to df
+    df = res.to_df()
+    assert isinstance(df, pd.DataFrame)
+    assert len(df.index) == len(records)
+
+
+def test_get_records_empty_table(client: ThanoSQL, empty_table_name: str):
+    target_table = client.table.get(name=empty_table_name)
+    res = target_table.get_records()
+    assert isinstance(res, Records)
+    assert res.total == 0
+    assert len(res.data) == 0
 
 
 def test_upload_table_invalid(client: ThanoSQL, new_schema: str):
@@ -216,7 +230,7 @@ def test_upload_table_csv(client: ThanoSQL, basic_table_name: str):
     # check get records with limit in the meantime
     limit = 5
     res = target_table.get_records(limit=limit)
-    assert len(res["records"]) == limit
+    assert len(res.data) == limit
 
 
 def test_upload_table_excel(client: ThanoSQL, new_schema: str):
@@ -244,7 +258,7 @@ def test_upload_table_excel(client: ThanoSQL, new_schema: str):
     # check get records with limit in the meantime
     limit = 5
     res = target_table.get_records(limit=limit)
-    assert len(res["records"]) == limit
+    assert len(res.data) == limit
 
 
 # we do more thorough testing for upload with df as it is an SDK-exclusive feature

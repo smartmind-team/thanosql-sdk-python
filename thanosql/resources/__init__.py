@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from ._file import FileService
 from ._query import QueryLog, QueryService, QueryTemplate
+from ._record import Records
 from ._schema import SchemaService
 from ._table import (
     BaseColumn,
@@ -18,4 +19,10 @@ from ._table import (
 )
 from ._view import View, ViewService
 
-__all__ = ["QueryService", "TableService", "ViewService", "SchemaService", "FileService"]
+__all__ = [
+    "QueryService",
+    "TableService",
+    "ViewService",
+    "SchemaService",
+    "FileService",
+]

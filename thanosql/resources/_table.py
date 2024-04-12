@@ -13,6 +13,7 @@ from pydantic import Field, TypeAdapter
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql.resources._model import BaseModel
+from thanosql.resources._record import Records
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
