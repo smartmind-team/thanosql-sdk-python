@@ -213,9 +213,7 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     completed_changed_query = f"SELECT name, price FROM {basic_table_name} LIMIT 0"
 
     # direct entry template
-    res = client.query.execute(
-        query=changed_query_template_string, parameters=params
-    )
+    res = client.query.execute(query=changed_query_template_string, parameters=params)
     assert isinstance(res, QueryLog)
     assert res.error_result is None
     assert res.destination_schema == "qm"
@@ -231,7 +229,9 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
 
     # direct entry without template or parameters
     res = client.query.execute(
-        query=plain_query_template_string, table_name=query_test_table_name, max_results=0
+        query=plain_query_template_string,
+        table_name=query_test_table_name,
+        max_results=0,
     )
     assert isinstance(res, QueryLog)
     assert res.error_result is None
