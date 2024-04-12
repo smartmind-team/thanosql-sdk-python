@@ -242,7 +242,7 @@ class Table(BaseTable):
         self,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
-    ) -> dict:
+    ) -> Records:
         path = f"/{self.service.tag}/{self.name}/records"
 
         query_params = self.service._create_input_dict(
@@ -251,11 +251,12 @@ class Table(BaseTable):
             limit=limit,
         )
 
-        return self.service.client._request(
+        res = self.service.client._request(
             method="get",
             path=path,
             query_params=query_params,
         )
+        return Records(data=res["records"], total=res["total"])
 
     def get_records_as_csv(
         self,
