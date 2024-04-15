@@ -56,6 +56,7 @@ class FileService(ThanoSQLService):
         db_commit: Optional[bool] = None,
         table: Optional[str] = None,
         column: Optional[str] = None,
+        schema: Optional[str] = None,
         dir: Optional[str] = None,
     ) -> dict:
         """Uploads a file to the workspace.
@@ -98,7 +99,11 @@ class FileService(ThanoSQLService):
         """
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(
-            db_commit=db_commit, table_name=table, column_name=column, dir=dir
+            db_commit=db_commit,
+            table_name=table,
+            column_name=column,
+            schema=schema,
+            dir=dir,
         )
 
         return self.client._request(
@@ -111,6 +116,7 @@ class FileService(ThanoSQLService):
         db_commit: Optional[bool] = None,
         table: Optional[str] = None,
         column: Optional[str] = None,
+        schema: Optional[str] = None,
     ) -> dict:
         """Deletes a file from the workspace.
 
@@ -138,7 +144,11 @@ class FileService(ThanoSQLService):
         """
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(
-            file_path=path, db_commit=db_commit, table_name=table, column_name=column
+            file_path=path,
+            db_commit=db_commit,
+            table_name=table,
+            column_name=column,
+            schema=schema,
         )
 
         return self.client._request(

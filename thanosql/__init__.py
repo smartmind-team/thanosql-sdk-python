@@ -11,6 +11,6 @@ __all__ = ["ThanoSQL"]
 def load_ipython_extension(ipython):
     # Load Ipython Magic
     from .magic.magic import ThanosMagic
-    
+
     """Load the extension in IPython."""
     ipython.register_magics(ThanosMagic)
