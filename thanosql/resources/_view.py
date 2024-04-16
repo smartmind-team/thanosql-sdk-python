@@ -124,12 +124,12 @@ class ViewService(ThanoSQLService):
         -------
         dict
             A dictionary containing a success message and the name of the
-            deleted view in the format of
+            deleted view in the format of::
 
-            {
-                "message": "string",
-                "view_name": "string"
-            }
+                {
+                    "message": "string",
+                    "view_name": "string"
+                }
 
         """
         path = f"/{self.tag}/{name}"

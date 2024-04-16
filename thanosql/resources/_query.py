@@ -192,12 +192,12 @@ class QueryLogService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary of results in the format of
+            A dictionary of results in the format of::
 
-            {
-                "query_logs": ["QueryLog"],
-                "total": 0
-            }
+                {
+                    "query_logs": ["QueryLog"],
+                    "total": 0
+                }
 
         """
         path = f"/{self.query.tag}/{self.tag}"
@@ -397,11 +397,11 @@ class QueryTemplateService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary containing a success message in the format of
+            A dictionary containing a success message in the format of::
 
-            {
-                "message": "string"
-            }
+                {
+                    "message": "string"
+                }
 
         """
         path = f"/{self.query.tag}/{self.tag}/{name}"

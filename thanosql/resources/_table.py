@@ -393,13 +393,13 @@ class TableService(ThanoSQLService):
         -------
         dict
             A dictionary containing a success message, table name, and schema
-            in the format of
+            in the format of::
 
-            {
-                "message": "string",
-                "table_name": "string",
-                "schema": "string"
-            }
+                {
+                    "message": "string",
+                    "table_name": "string",
+                    "schema": "string"
+                }
 
         """
         path = f"/{self.tag}/{name}"
@@ -415,14 +415,10 @@ class Table(BaseTable):
     columns, and constraints as attributes, with a table service
     layer to allow connection to the ThanoSQL engine.
 
-    Attributes
-    ----------
-    service : TableService
-        The table service layer to access the ThanoSQL client.
-
     """
 
     service: Optional[TableService] = None
+    """The table service layer to access the ThanoSQL client."""
 
     def get_records(
         self,
@@ -599,12 +595,12 @@ class TableTemplateService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary of matching table template(s) in the format of
+            A dictionary of matching table template(s) in the format of::
 
-            {
-                "table_templates": ["TableTemplate"],
-                "versions": ["string"]
-            }
+                {
+                    "table_templates": ["TableTemplate"],
+                    "versions": ["string"]
+                }
 
         """
         path = f"/{self.tag}/{name}"
@@ -683,12 +679,12 @@ class TableTemplateService(ThanoSQLService):
         -------
         dict
             A dictionary containing a success message and the name of the table
-            template in the format of
+            template in the format of::
 
-            {
-                "message": "string",
-                "table_template_name": "string"
-            }
+                {
+                    "message": "string",
+                    "table_template_name": "string"
+                }
 
         """
         path = f"/{self.tag}/{name}"

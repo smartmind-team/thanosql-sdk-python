@@ -29,15 +29,15 @@ class SchemaService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary containing the names of stored schemas in the format:
+            A dictionary containing the names of stored schemas in the format of::
 
-            {
-                "schemas": [
-                    {
-                        "name": "string"
-                    }
-                ]
-            }
+                {
+                    "schemas": [
+                        {
+                            "name": "string"
+                        }
+                    ]
+                }
 
         """
         path = f"/{self.tag}/"
@@ -56,12 +56,12 @@ class SchemaService(ThanoSQLService):
         -------
         dict
             A dictionary containing the name of the created schema and
-            a success message in the format of
+            a success message in the format of::
 
-            {
-                "schema": "string",
-                "message": "string"
-            }
+                {
+                    "schema": "string",
+                    "message": "string"
+                }
 
         """
         path = f"/{self.tag}/{name}"

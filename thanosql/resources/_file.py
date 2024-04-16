@@ -35,13 +35,13 @@ class FileService(ThanoSQLService):
         -------
         dict
             A dictionary containing the list of files and folders under
-            the input path in the format:
+            the input path in the format of::
 
-            {
-                "data": {
-                    "matched_pathnames": [list of matched pathnames],
+                {
+                    "data": {
+                        "matched_pathnames": [list of matched pathnames],
+                    }
                 }
-            }
 
         """
         api_path = f"/{self.tag}/"
@@ -86,16 +86,16 @@ class FileService(ThanoSQLService):
         dict
             Dictionary containing values of "file_path", "table_name", "column_name",
             and "schema". "file_path" will always be returned, while the rest are
-            only returned if db_commit is set to True.
+            only returned if db_commit is set to True. The result is in the format of::
 
-            {
-                "data": {
-                    "file_path": file_path,
-                    "table_name": table_name | null,
-                    "column_name": column_name | null,
-                    "schema": schema | null
+                {
+                    "data": {
+                        "file_path": file_path,
+                        "table_name": table_name | null,
+                        "column_name": column_name | null,
+                        "schema": schema | null
+                    }
                 }
-            }
 
         """
         api_path = f"/{self.tag}/"
@@ -140,11 +140,11 @@ class FileService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary containing a success message in the format of
+            A dictionary containing a success message in the format of::
 
-            {
-                "message": "string"
-            }
+                {
+                    "message": "string"
+                }
 
         """
         api_path = f"/{self.tag}/"
