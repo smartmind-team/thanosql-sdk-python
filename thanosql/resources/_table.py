@@ -77,6 +77,18 @@ class IfExists(enum.Enum):
 
 
 class TableService(ThanoSQLService):
+    """Service layer for table methods.
+
+    Attributes
+    ----------
+    client: ThanoSQL
+        The ThanoSQL client used to make requests to the engine.
+    template: TableTemplateService
+        The table template service layer to access methods involving
+        table templates.
+
+    """
+
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="table")
 
@@ -95,6 +107,31 @@ class TableService(ThanoSQLService):
         offset: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> List[Table]:
+        """Lists tables stored in the workspace.
+
+        Parameters
+        ----------
+        schema : str, optional
+            The schema where the listed tables should reside in. If not set,
+            all tables from all schemas will be included.
+        verbose : bool, optional
+            Whether to include the table columns and constraints in the results.
+            By default, or if set to False, only retrieves the names and schemas
+            of stored tables.
+        offset : int, optional
+            When set to n, skips the first n results and excludes them from
+            the output list. Otherwise, starts the list from the first result
+            stored. Must be greater than 0.
+        limit : int, optional
+            When set to n, limits the number of results listed to n. Otherwise,
+            lists up to 100 results per call. Must range between 0 to 100.
+
+        Returns
+        -------
+        List[Table]
+            A list of Table objects.
+
+        """
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema, verbose=verbose, offset=offset, limit=limit
@@ -110,7 +147,23 @@ class TableService(ThanoSQLService):
             table.service = self
         return parsed_response
 
-    def get(self, name: str, schema: Optional[str] = None) -> Union[Table, dict]:
+    def get(self, name: str, schema: Optional[str] = None) -> Table:
+        """Shows the details of a table stored in the workspace.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table to be retrieved.
+        schema : str, optional
+            The schema where the table to be retrieved is in. If not
+            specified, this method will look for the table in "public".
+
+        Returns
+        -------
+        Table
+            A Table object.
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
@@ -123,6 +176,39 @@ class TableService(ThanoSQLService):
     def update(
         self, name: str, schema: Optional[str] = None, table: Optional[BaseTable] = None
     ) -> Table:
+        """Updates a table stored in the workspace.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table to be updated.
+        schema : str, optional
+            The schema where the table to be updated is in. If not
+            specified, this method will look for the table in "public".
+        table : BaseTable, optional
+            BaseTable object containing changed details of the table to be
+            updated. Any attribute of BaseTable can be modified, and if left
+            unset, the current value will be maintained after update.
+            The attributes are as follows:
+            - name: new name to rename the table to
+            - schema: new schema to move the table to
+            - columns: new columns of the updated table. All new columns
+                must be in this object, including columns that already exist
+                in the original table. If this attribute is set but some
+                original columns are not included, they will be removed from
+                the table.
+            - constraints: new constraints of the updated table. All new
+                constraints must be in this object, including constraints
+                that already exist in the original table. If this attribute is
+                set but some original constraints are not included, they will
+                be removed from the table.
+
+        Returns
+        -------
+        Table
+            Table object of the new table after update.
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
         payload = self._create_input_dict(table=table)
@@ -136,9 +222,29 @@ class TableService(ThanoSQLService):
     def create(
         self,
         name: str,
+        table: TableObject,
         schema: Optional[str] = None,
-        table: Optional[TableObject] = None,
     ) -> Table:
+        """Creates a new table.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table to be created.
+        table : TableObject
+            TableObject containing the columns and constraints of the table
+            to be created. In order to create an empty table, pass in an empty
+            object (TableObject()).
+        schema : str, optional
+            The schema to save the created table in. If not specified, the table
+            will be saved to "public".
+
+        Returns
+        -------
+        Table
+            Table object of the created table.
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
         payload = self._create_input_dict(table=table)
@@ -158,6 +264,52 @@ class TableService(ThanoSQLService):
         table: Optional[TableObject] = None,
         if_exists: str = "fail",
     ) -> Table:
+        """Uploads the contents of a CSV or Excel-like file or Pandas DataFrame
+        into a table in the workspace.
+
+        Either a CSV or Excel-like (.xls, .xlsx, .xlsm, .xlsb, .odf, .ods, .odt)
+        file or DataFrame must be specified. However, both should not be used
+        at the same time.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table created from the file or DataFrame.
+        file : str or PathLike, optional
+            CSV or Excel-like file containing tabulated data to be uploaded
+            to a table in the workspace.
+        df : DataFrame, optional
+            Pandas DataFrame containing data to be uploaded to a table in
+            the workspace.
+        schema : str, optional
+            The schema to save the created table in. If not specified, the table
+            will be saved to "public".
+        table : TableObject, optional
+            TableObject containing the columns and constraints of the table
+            to be created. If specified, the created table will follow the object
+            format and no type inference is conducted. Otherwise, type
+            inference will be performed and the table will be created to match
+            the columns from source.
+        if_exists : str, default "fail"
+            What to do if table of the same name already exists. There are only
+            three available values:
+            - fail: fails (throws an error) if the same table exists
+            - append: appends records into an existing table (columns must match
+                in order to not make an error)
+            - replace: deletes existing table and creates a new one with the
+                given name
+
+        Returns
+        -------
+        Table
+            Table object of the uploaded table.
+
+        Raises
+        ------
+        ThanoSQLValueError
+            _description_
+
+        """
         try:
             if_exists_enum = IfExists(if_exists)
         except Exception as e:
@@ -227,6 +379,29 @@ class TableService(ThanoSQLService):
             raise ThanoSQLValueError("No file or DataFrame provided for upload")
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
+        """Deletes a table from the workspace.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table to be deleted.
+        schema : str, optional
+            The schema where the table to be deleted is in. If not specified,
+            this method will look for the table in "public".
+
+        Returns
+        -------
+        dict
+            A dictionary containing a success message, table name, and schema
+            in the format of
+
+            {
+                "message": "string",
+                "table_name": "string",
+                "schema": "string"
+            }
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
 
@@ -236,6 +411,17 @@ class TableService(ThanoSQLService):
 
 
 class Table(BaseTable):
+    """Extends the BaseTable class, which has name, schema,
+    columns, and constraints as attributes, with a table service
+    layer to allow connection to the ThanoSQL engine.
+
+    Attributes
+    ----------
+    service : TableService
+        The table service layer to access the ThanoSQL client.
+
+    """
+
     service: Optional[TableService] = None
 
     def get_records(
@@ -243,6 +429,24 @@ class Table(BaseTable):
         offset: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> Records:
+        """Lists the records of a table in the workspace.
+
+        Parameters
+        ----------
+        offset : int, optional
+            When set to n, skips the first n results and excludes them from
+            the output list. Otherwise, starts the list from the first result
+            stored. Must be greater than 0.
+        limit : int, optional
+            When set to n, limits the number of results listed to n. Otherwise,
+            lists up to 100 results per call. Must range between 0 to 100.
+
+        Returns
+        -------
+        Records
+            A Records object.
+
+        """
         path = f"/{self.service.tag}/{self.name}/records"
 
         query_params = self.service._create_input_dict(
@@ -262,6 +466,16 @@ class Table(BaseTable):
         self,
         timezone_offset: Optional[int] = None,
     ) -> None:
+        """Downloads the records of a table as a CSV file.
+
+        Parameters
+        ----------
+        timezone_offset : int, optional
+            Timezone offset from Coordinated Universal Time (UTC).
+            If not set, this value is 9, following the timezone in Seoul.
+            This value is used to determine the time used in the file name.
+
+        """
         path = f"/{self.service.tag}/{self.name}/records/csv"
 
         query_params = self.service._create_input_dict(
@@ -276,7 +490,21 @@ class Table(BaseTable):
     def insert(
         self,
         records: List[dict],
-    ) -> Union[Table, dict]:
+    ) -> Table:
+        """Inserts records to a table in the workspace.
+
+        Parameters
+        ----------
+        records : list of dict
+            The records to be inserted in the format of a list of
+            column-value pairs.
+
+        Returns
+        -------
+        Table
+            A Table object.
+
+        """
         path = f"/{self.service.tag}/{self.name}/records"
         query_params = self.service._create_input_dict(schema=self.table_schema)
 
@@ -296,6 +524,15 @@ class TableTemplate(BaseModel):
 
 
 class TableTemplateService(ThanoSQLService):
+    """Service layer for table template methods.
+
+    Attributes
+    ----------
+    client: ThanoSQL
+        The ThanoSQL client used to make requests to the engine.
+
+    """
+
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="table_template")
 
@@ -305,6 +542,29 @@ class TableTemplateService(ThanoSQLService):
         order_by: Optional[str] = None,
         latest: Optional[bool] = None,
     ) -> List[TableTemplate]:
+        """Lists table templates in the workspace.
+
+        Parameters
+        ----------
+        search : str, optional
+            Search keywords that the table template names in the results must
+            contain. If not set, all table templates are returned by default.
+        order_by : str, optional
+            How to order the results. There are only three possible values:
+            - recent: based on the date of creation, from most recent to oldest
+            - name_asc: based on the name of the template, from A to Z
+            - name_desc: based on the name of the template, from Z to A
+        latest : bool, optional
+            Whether to return only the latest version of each table template.
+            By default, or if set to False, all versions of table templates are
+            included in the results.
+
+        Returns
+        -------
+        List[TableTemplate]
+            A list of TableTemplate objects.
+
+        """
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             search=search,
@@ -323,6 +583,30 @@ class TableTemplateService(ThanoSQLService):
         return parsed_response
 
     def get(self, name: str, version: Optional[str] = None) -> dict:
+        """Shows the details of a table template stored in the workspace.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table template to be retrieved.
+        version : str, optional
+            The version of the table template to be retrieved. The value
+            can either be a specific version such as "1.0", or "latest".
+            If "latest" is specified, only the latest version of the table
+            template will be shown. If version is not set, all versions
+            will be shown.
+
+        Returns
+        -------
+        dict
+            A dictionary of matching table template(s) in the format of
+
+            {
+                "table_templates": ["TableTemplate"],
+                "versions": ["string"]
+            }
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(version=version)
 
@@ -346,6 +630,29 @@ class TableTemplateService(ThanoSQLService):
         version: Optional[str] = None,
         compatibility: Optional[str] = None,
     ) -> TableTemplate:
+        """Creates a new table template.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table template to be created.
+        table_template : TableObject
+            TableObject containing the columns and constraints of the table
+            template to be created. In order to create an empty table template,
+            pass in an empty object (TableObject()).
+        version : str, optional
+            The version of the table template to be created. If not set, it will
+            default to "1.0".
+        compatibility : str, optional
+            The compatibility setting of the table template to be created. If not
+            set, it will default to "ignore" (no compatibility checks).
+
+        Returns
+        -------
+        TableTemplate
+            TableTemplate object of the created table template.
+
+        """
         path = f"/{self.tag}/{name}"
         payload = self._create_input_dict(
             table_template=vars(table_template),
@@ -362,6 +669,28 @@ class TableTemplateService(ThanoSQLService):
         return parsed_response
 
     def delete(self, name: str, version: Optional[str] = None) -> dict:
+        """Deletes a table template from the workspace.
+
+        Parameters
+        ----------
+        name : str
+            The name of the table template to be removed.
+        version : str, optional
+            The version of the table template to be removed. If not specified, all
+            versions of the table template will be removed.
+
+        Returns
+        -------
+        dict
+            A dictionary containing a success message and the name of the table
+            template in the format of
+
+            {
+                "message": "string",
+                "table_template_name": "string"
+            }
+
+        """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(version=version)
 
