@@ -45,7 +45,9 @@ class QueryService(ThanoSQLService):
     log: QueryLogService
         The query log service layer to access methods involving query logs.
     template: QueryTemplateService
-        The query template service layer to access methods involving query templates.
+        The query template service layer to access methods involving
+        query templates.
+
     """
 
     def __init__(self, client: ThanoSQL) -> None:
@@ -69,7 +71,7 @@ class QueryService(ThanoSQLService):
         """Executes a query string.
 
         There are three ways of requesting a query:
-        
+
         - Using a complete query directly in `query`, leaving
           `template_id`, `template_name`, and `parameters` empty.
         - Using a template query in `query` and completing it with `parameters`,
@@ -77,7 +79,7 @@ class QueryService(ThanoSQLService):
         - Recalling a template query from the database using `template_id` or
           `template_name` (but not both) and completing it with `parameters`,
           leaving `query` empty.
-        
+
         One, and only one, of these ways must be chosen. That is, exactly one of
         `query`, `template_id`, or `template_name` must be specified. If none or
         more than one way is selected, an error will occur.
@@ -151,8 +153,15 @@ class QueryService(ThanoSQLService):
 
 class QueryLogService(ThanoSQLService):
     """Service layer for query log methods.
-    
-    Cannot exist without a parent QueryService."""
+
+    Cannot exist without a parent QueryService.
+
+    Attributes
+    ----------
+    query: QueryService
+        The parent QueryService to connect to the ThanoSQL client.
+
+    """
 
     def __init__(self, query: QueryService) -> None:
         super().__init__(client=query.client, tag="log")
@@ -165,21 +174,31 @@ class QueryLogService(ThanoSQLService):
         offset: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> dict:
-        """_summary_
+        """Lists the details of stored query logs.
 
         Parameters
         ----------
-        search : Optional[str], optional
-            _description_, by default None
-        offset : Optional[int], optional
-            _description_, by default None
-        limit : Optional[int], optional
-            _description_, by default None
+        search : str, optional
+            Search keywords that the query strings in the results must contain.
+            If not set, all query logs are returned by default.
+        offset : int, optional
+            When set to n, skips the first n results and excludes them from
+            the output list. Otherwise, starts the list from the first result
+            stored. Must be greater than 0.
+        limit : int, optional
+            When set to n, limits the number of results listed to n. Otherwise,
+            lists up to 100 results per call. Must range between 0 to 100.
 
         Returns
         -------
         dict
-            _description_
+            A dictionary of results in the format of
+
+            {
+                "query_logs": ["QueryLog"],
+                "total": 0
+            }
+
         """
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
@@ -210,7 +229,16 @@ class QueryTemplate(BaseModel):
 
 
 class QueryTemplateService(ThanoSQLService):
-    """Cannot exist without a parent QueryService"""
+    """Service layer for query template methods.
+
+    Cannot exist without a parent QueryService.
+
+    Attributes
+    ----------
+    query: QueryService
+        The parent QueryService to connect to the ThanoSQL client.
+
+    """
 
     def __init__(self, query: QueryService) -> None:
         super().__init__(client=query.client, tag="template")
@@ -231,23 +259,31 @@ class QueryTemplateService(ThanoSQLService):
         limit: Optional[int] = None,
         order_by: Optional[str] = None,
     ) -> List[QueryTemplate]:
-        """_summary_
+        """Lists query templates stored in the workspace.
 
         Parameters
         ----------
-        search : Optional[str], optional
-            _description_, by default None
-        offset : Optional[int], optional
-            _description_, by default None
-        limit : Optional[int], optional
-            _description_, by default None
-        order_by : Optional[str], optional
-            _description_, by default None
+        search : str, optional
+            Search keywords that the query strings in the results must contain.
+            If not set, all query templates are returned by default.
+        offset : int, optional
+            When set to n, skips the first n results and excludes them from
+            the output list. Otherwise, starts the list from the first result
+            stored. Must be greater than 0.
+        limit : int, optional
+            When set to n, limits the number of results listed to n. Otherwise,
+            lists up to 100 results per call. Must range between 0 to 100.
+        order_by : str, optional
+            How to order the results. There are only three possible values:
+            - recent: based on the date of creation, from most recent to oldest
+            - name_asc: based on the name of the template, from A to Z
+            - name_desc: based on the name of the template, from Z to A
 
         Returns
         -------
         List[QueryTemplate]
-            _description_
+            A list of QueryTemplate objects.
+
         """
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
@@ -270,21 +306,25 @@ class QueryTemplateService(ThanoSQLService):
         query: Optional[str] = None,
         dry_run: Optional[bool] = None,
     ) -> QueryTemplate:
-        """_summary_
+        """Creates a new query template.
 
         Parameters
         ----------
-        name : Optional[str], optional
-            _description_, by default None
-        query : Optional[str], optional
-            _description_, by default None
-        dry_run : Optional[bool], optional
-            _description_, by default None
+        name : str, optional
+            The name of the query template to be created.
+        query : str, optional
+            The string contents of the template.
+        dry_run : bool, optional
+            Whether to "dry run" the template creation or save it to database.
+            When set to True, only shows whether the query template is valid
+            or not without actually storing it. By default, created query
+            templates will be saved to the workspace database.
 
         Returns
         -------
         QueryTemplate
-            _description_
+            QueryTemplate object of the created query template.
+
         """
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(dry_run=dry_run)
@@ -297,17 +337,18 @@ class QueryTemplateService(ThanoSQLService):
         return self._parse_query_template_response(raw_response)
 
     def get(self, name: str) -> QueryTemplate:
-        """_summary_
+        """Shows the details of a query template stored in the workspace.
 
         Parameters
         ----------
         name : str
-            _description_
+            The name of the query template to be retrieved.
 
         Returns
         -------
         QueryTemplate
-            _description_
+            A QueryTemplate object.
+
         """
         path = f"/{self.query.tag}/{self.tag}/{name}"
         raw_response = self.client._request(method="get", path=path)
@@ -319,21 +360,24 @@ class QueryTemplateService(ThanoSQLService):
         new_name: Optional[str] = None,
         query: Optional[str] = None,
     ) -> QueryTemplate:
-        """_summary_
+        """Updates a query template stored in the workspace.
 
         Parameters
         ----------
         current_name : str
-            _description_
-        new_name : Optional[str], optional
-            _description_, by default None
-        query : Optional[str], optional
-            _description_, by default None
+            The current name of the query template to be updated.
+        new_name : str, optional
+            The new name of query template after update. If not set,
+            the name will not be changed.
+        query : str, optional
+            The query contents of the query template after update. If
+            not set, the query string will not be changed.
 
         Returns
         -------
         QueryTemplate
-            _description_
+            QueryTemplate object of the new query template after update.
+
         """
         path = f"/{self.query.tag}/{self.tag}/{current_name}"
         payload = self._create_input_dict(name=new_name, query=query)
@@ -343,17 +387,22 @@ class QueryTemplateService(ThanoSQLService):
         return self._parse_query_template_response(raw_response)
 
     def delete(self, name: str) -> dict:
-        """_summary_
+        """Deletes a query template from the workspace.
 
         Parameters
         ----------
         name : str
-            _description_
+            The name of the query template to be deleted.
 
         Returns
         -------
         dict
-            _description_
+            A dictionary containing a success message in the format of
+
+            {
+                "message": "string"
+            }
+
         """
         path = f"/{self.query.tag}/{self.tag}/{name}"
 
