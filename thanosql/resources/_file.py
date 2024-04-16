@@ -16,14 +16,15 @@ class FileService(ThanoSQLService):
     ----------
     client: ThanoSQL
         The ThanoSQL client used to make requests to the engine.
-    
+
     """
+
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="file")
 
     def list(self, path: Union[str, os.PathLike]) -> dict:
         """Lists all files and directories under a specified path.
-        
+
         Parameters
         ----------
         path: str or path_like
@@ -139,7 +140,11 @@ class FileService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary object containing a success message.
+            A dictionary containing a success message in the format of
+
+            {
+                "message": "string"
+            }
 
         """
         api_path = f"/{self.tag}/"

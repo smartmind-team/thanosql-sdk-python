@@ -26,8 +26,9 @@ class ViewService(ThanoSQLService):
     ----------
     client: ThanoSQL
         The ThanoSQL client used to make requests to the engine.
-    
+
     """
+
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="view")
 
@@ -57,7 +58,7 @@ class ViewService(ThanoSQLService):
         limit: int, optional
             When set to n, limits the number of views listed to n. Otherwise,
             lists up to 100 views per call. Must range between 1 to 100.
-        
+
         Returns
         -------
         List[View]
@@ -122,7 +123,13 @@ class ViewService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary containing a success message and the name of the view.
+            A dictionary containing a success message and the name of the
+            deleted view in the format of
+
+            {
+                "message": "string",
+                "view_name": "string"
+            }
 
         """
         path = f"/{self.tag}/{name}"

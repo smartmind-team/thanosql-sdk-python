@@ -15,8 +15,9 @@ class SchemaService(ThanoSQLService):
     ----------
     client: ThanoSQL
         The ThanoSQL client used to make requests to the engine.
-    
+
     """
+
     def __init__(self, client: ThanoSQL) -> None:
         super().__init__(client=client, tag="schema")
 
@@ -30,7 +31,6 @@ class SchemaService(ThanoSQLService):
         dict
             A dictionary containing the names of stored schemas in the format:
 
-            ```python
             {
                 "schemas": [
                     {
@@ -38,7 +38,6 @@ class SchemaService(ThanoSQLService):
                     }
                 ]
             }
-            ```
 
         """
         path = f"/{self.tag}/"
@@ -56,10 +55,15 @@ class SchemaService(ThanoSQLService):
         Returns
         -------
         dict
-            A dictionary containing a success message and the name of the schema.
+            A dictionary containing the name of the created schema and
+            a success message in the format of
+
+            {
+                "schema": "string",
+                "message": "string"
+            }
 
         """
-
         path = f"/{self.tag}/{name}"
 
         return self.client._request(method="post", path=path)
