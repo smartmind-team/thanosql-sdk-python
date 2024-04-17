@@ -131,6 +131,17 @@ class TableService(ThanoSQLService):
         List[Table]
             A list of Table objects.
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
+        ThanoSQLNotFoundError
+            If schema is not found.
+        ThanoSQLInternalError
+            If an error happens while fetching tables from the database.
+
         """
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
@@ -162,6 +173,15 @@ class TableService(ThanoSQLService):
         -------
         Table
             A Table object.
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If the requested schema or table is not found.
+        ThanoSQLInternalError
+            If an error happens while fetching the table from the database.
 
         """
         path = f"/{self.tag}/{name}"
@@ -208,6 +228,17 @@ class TableService(ThanoSQLService):
         Table
             Table object of the new table after update.
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            If the table object contains invalid formatting.
+        ThanoSQLNotFoundError
+            If the requested schema or table is not found.
+        ThanoSQLInternalError
+            If an error happens while updating the table in the database.
+
         """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -243,6 +274,19 @@ class TableService(ThanoSQLService):
         -------
         Table
             Table object of the created table.
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            If the table object contains invalid formatting.
+        ThanoSQLNotFoundError
+            If schema is not found.
+        ThanoSQLAlreadyExistsError
+            If a table with the same name already exists.
+        ThanoSQLInternalError
+            If an error happens while storing the table to the database.
 
         """
         path = f"/{self.tag}/{name}"
@@ -306,8 +350,23 @@ class TableService(ThanoSQLService):
 
         Raises
         ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
         ThanoSQLValueError
-            _description_
+            - If if_exists is not one of "fail", "append", or "replace".
+            - If neither file nor df is used, or if both are used at the same time.
+            - If file is used but it is neither CSV nor Excel-like.
+            - If the file or df contains badly-formatted contents.
+            - If a table body is specified but does not match the contents of the \
+                file or df.
+            - If if_exists is set to "append" but the new contents does not match \
+                the format of the existing table.
+        ThanoSQLNotFoundError
+            If schema does not exist.
+        ThanoSQLAlreadyExistsError
+            If a table with the same name already exists and if_exists is set to "fail".
+        ThanoSQLInternalError
+            If an error happens while uploading the table to the database.
 
         """
         try:
@@ -401,6 +460,15 @@ class TableService(ThanoSQLService):
                     "schema": "string"
                 }
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If the requested schema or table is not found.
+        ThanoSQLInternalError
+            If an error happens while deleting the table from the database.
+
         """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -442,6 +510,13 @@ class Table(BaseTable):
         Records
             A Records object.
 
+        Raises
+        ------
+        ThanoSQLValueError
+            If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
+        ThanoSQLInternalError
+            If an error happens while fetching the table records from the database.
+
         """
         path = f"/{self.service.tag}/{self.name}/records"
 
@@ -471,6 +546,11 @@ class Table(BaseTable):
             If not set, this value is 9, following the timezone in Seoul.
             This value is used to determine the time used in the file name.
 
+        Raises
+        ------
+        ThanoSQLInternalError
+            If an error happens while fetching the table records from the database.
+
         """
         path = f"/{self.service.tag}/{self.name}/records/csv"
 
@@ -499,6 +579,13 @@ class Table(BaseTable):
         -------
         Table
             A Table object.
+
+        Raises
+        ------
+        ThanoSQLValueError
+            If the records are in an invalid format or contain invalid contents.
+        ThanoSQLInternalError
+            If an error happens while inserting the table records into the database.
 
         """
         path = f"/{self.service.tag}/{self.name}/records"
@@ -560,6 +647,15 @@ class TableTemplateService(ThanoSQLService):
         List[TableTemplate]
             A list of TableTemplate objects.
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            If order_by is not one of "recent", "name_asc", or "name_desc".
+        ThanoSQLInternalError
+            If an error happens while fetching table templates from the database.
+
         """
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
@@ -602,6 +698,16 @@ class TableTemplateService(ThanoSQLService):
                     "versions": ["string"]
                 }
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If the requested table template (with a specific version, if specified)
+            is not found.
+        ThanoSQLInternalError
+            If an error happens while fetching the table template from the database.
+
         """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(version=version)
@@ -637,8 +743,8 @@ class TableTemplateService(ThanoSQLService):
             template to be created. In order to create an empty table template,
             pass in an empty object (TableObject()).
         version : str, optional
-            The version of the table template to be created. If not set, it will
-            default to "1.0".
+            The version of the table template to be created. It must be in the
+            format of "[1-9].[0-9]". If not set, it will default to "1.0".
         compatibility : str, optional
             The compatibility setting of the table template to be created. If not
             set, it will default to "ignore" (no compatibility checks).
@@ -647,6 +753,19 @@ class TableTemplateService(ThanoSQLService):
         -------
         TableTemplate
             TableTemplate object of the created table template.
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            - If the template name contains invalid characters or is too long.
+            - If version is specified but is not in the right format.
+            - If the table template contains formatting errors.
+        ThanoSQLAlreadyExistsError
+            If a table template with the same name already exists.
+        ThanoSQLInternalError
+            If an error happens while storing the table template to the database.
 
         """
         path = f"/{self.tag}/{name}"
@@ -685,6 +804,16 @@ class TableTemplateService(ThanoSQLService):
                     "message": "string",
                     "table_template_name": "string"
                 }
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If the requested table template (with a specific version, if specified)
+            is not found.
+        ThanoSQLInternalError
+            If an error happens while deleting the table template from the database.
 
         """
         path = f"/{self.tag}/{name}"

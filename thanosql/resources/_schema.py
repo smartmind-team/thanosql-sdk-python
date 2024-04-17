@@ -39,6 +39,11 @@ class SchemaService(ThanoSQLService):
                     ]
                 }
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+
         """
         path = f"/{self.tag}/"
 
@@ -62,6 +67,13 @@ class SchemaService(ThanoSQLService):
                     "schema": "string",
                     "message": "string"
                 }
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLAlreadyExistsError
+            If a schema with the requested name already exists.
 
         """
         path = f"/{self.tag}/{name}"

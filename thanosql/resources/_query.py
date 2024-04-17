@@ -104,22 +104,45 @@ class QueryService(ThanoSQLService):
             Only relevant when a query template, either from `query` or the database,
             is used.
         schema: str, optional
-            The schema of the table to save the query results in.
+            The schema of the table to save the query results in. If not specified
+            and table_name is also empty, it defaults to "qm". If table_name is
+            specified, it defaults to "public".
         table_name: str, optional
-            The name of the table to save the query results in.
+            The name of the table to save the query results in. If not specified
+            while the query produces a result, an automatic table name will be given.
         overwrite: bool, optional
             Whether to overwrite the table if a table with the same `table_name`
-            and `schema` already exists.
+            and `schema` already exists. If not specified, the value is False.
         max_results: int, optional
             The maximum number of records to be returned by the response QueryLog.
-            If not specified, the `records` part of QueryLog will be None, even
-            when the query produces some records.
+            If not specified, it defaults to 100.
 
         Returns
         -------
         QueryLog
             A query log object containing details about the results of the
             executed query.
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            - If invalid input combination is provided; that is:
+                - query, template_id, and template_name are all empty, or
+                - more than one of query, template_id, and template_name are non-empty
+            - If a value other than "thanosql" or "psql" is provided as query_type.
+            - If max_results is not between 0 and 100 (inclusive).
+            - If query and parameters are used but the template has invalid format.
+            - If rendering query template by substituting in parameters fails, either \
+                by direct query template or templates from the database.
+        ThanoSQLNotFoundError
+            - If schema does not exist.
+            - If query template from the database is to be retrieved but no matching \
+                template_id or template_name is found.
+        ThanoSQLAlreadyExistsError
+            - If a table with the same table_name already exists and overwrite \
+                is not set to True.
 
         """
         try:
@@ -198,6 +221,13 @@ class QueryLogService(ThanoSQLService):
                     "query_logs": ["QueryLog"],
                     "total": 0
                 }
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
 
         """
         path = f"/{self.query.tag}/{self.tag}"
@@ -284,6 +314,16 @@ class QueryTemplateService(ThanoSQLService):
         List[QueryTemplate]
             A list of QueryTemplate objects.
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            - If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
+            - If order_by is not one of "recent", "name_asc", or "name_desc".
+        ThanoSQLInternalError
+            If an error happens while fetching query templates from the database.
+
         """
         path = f"/{self.query.tag}/{self.tag}"
         query_params = self._create_input_dict(
@@ -311,7 +351,8 @@ class QueryTemplateService(ThanoSQLService):
         Parameters
         ----------
         name : str, optional
-            The name of the query template to be created.
+            The name of the query template to be created. If left empty, an
+            automatic name will be given.
         query : str, optional
             The string contents of the template.
         dry_run : bool, optional
@@ -324,6 +365,18 @@ class QueryTemplateService(ThanoSQLService):
         -------
         QueryTemplate
             QueryTemplate object of the created query template.
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            - If the template name contains invalid characters or is too long.
+            - If the query template contains invalid formatting.
+        ThanoSQLAlreadyExistsError
+            If a query template with the same name already exists.
+        ThanoSQLInternalError
+            If an error happens while storing the query template to the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}"
@@ -348,6 +401,15 @@ class QueryTemplateService(ThanoSQLService):
         -------
         QueryTemplate
             A QueryTemplate object.
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If the requested query template is not found.
+        ThanoSQLInternalError
+            If an error happens while fetching the query template from the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}/{name}"
@@ -378,6 +440,21 @@ class QueryTemplateService(ThanoSQLService):
         QueryTemplate
             QueryTemplate object of the new query template after update.
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            - If the new template name is set but is empty or null, contains invalid \
+                characters, or is too long.
+            - If the new query template is set but is null or contains invalid formatting.
+        ThanoSQLNotFoundError
+            If the query template with current_name does not exist.
+        ThanoSQLAlreadyExistsError
+            If a query template with the same name as new_name already exists.
+        ThanoSQLInternalError
+            If an error happens while updating the query template in the database.
+
         """
         path = f"/{self.query.tag}/{self.tag}/{current_name}"
         payload = self._create_input_dict(name=new_name, query=query)
@@ -402,6 +479,15 @@ class QueryTemplateService(ThanoSQLService):
                 {
                     "message": "string"
                 }
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If the requested query template is not found.
+        ThanoSQLInternalError
+            If an error happens while deleting the query template from the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}/{name}"

@@ -57,12 +57,23 @@ class ViewService(ThanoSQLService):
             stored. Must be greater than 0.
         limit: int, optional
             When set to n, limits the number of views listed to n. Otherwise,
-            lists up to 100 views per call. Must range between 1 to 100.
+            lists up to 100 views per call. Must range between 0 to 100.
 
         Returns
         -------
         List[View]
             A list of View objects.
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
+        ThanoSQLNotFoundError
+            If schema is not found.
+        ThanoSQLInternalError
+            If an error happens while fetching views from the database.
 
         """
         path = f"/{self.tag}/"
@@ -97,6 +108,15 @@ class ViewService(ThanoSQLService):
         View
             A View object.
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If schema or view is not found.
+        ThanoSQLInternalError
+            If an error happens while fetching the view from the database.
+
         """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -130,6 +150,15 @@ class ViewService(ThanoSQLService):
                     "message": "string",
                     "view_name": "string"
                 }
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLNotFoundError
+            If schema or view is not found.
+        ThanoSQLInternalError
+            If an error happens while deleting the view from the database.
 
         """
         path = f"/{self.tag}/{name}"

@@ -29,7 +29,7 @@ class FileService(ThanoSQLService):
         ----------
         path: str or path_like
             The path that contains the files and directories to be listed.
-            Regex pattern is recommended.
+            It should begin with 'drive/'. Regex pattern is recommended.
 
         Returns
         -------
@@ -42,6 +42,13 @@ class FileService(ThanoSQLService):
                         "matched_pathnames": [list of matched pathnames],
                     }
                 }
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            If an invalid API token is provided.
+        ThanoSQLValueError
+            If path is not within the 'drive' directory.
 
         """
         api_path = f"/{self.tag}/"
@@ -97,6 +104,21 @@ class FileService(ThanoSQLService):
                     }
                 }
 
+        Raises
+        ------
+        ThanoSQLPermissionError
+            - If an invalid API token is provided.
+            - If file upload is forbidden.
+        ThanoSQLNotFoundError
+            If db_commit is True but the requested table-column combination does
+            not exist.
+        ThanoSQLValueError
+            - If dir is not within the 'drive' directory.
+            - If the path cannot be saved to table due to integrity or data error.
+        ThanoSQLInternalError
+            If an internal error happens while uploading file to the workspace
+            or saving the path to table.
+
         """
         api_path = f"/{self.tag}/"
         query_params = self._create_input_dict(
@@ -145,6 +167,23 @@ class FileService(ThanoSQLService):
                 {
                     "message": "string"
                 }
+
+        Raises
+        ------
+        ThanoSQLPermissionError
+            - If an invalid API token is provided.
+            - If file deletion is forbidden.
+        ThanoSQLNotFoundError
+            - If db_commit is True but the requested table-column combination does \
+                not exist.
+            - If the file to be deleted cannot be found in the requested path.
+            - If the requested table-column combination exists but does not contain \
+                the file path to be deleted.
+        ThanoSQLValueError
+            If path is not within the 'drive' directory.
+        ThanoSQLInternalError
+            If an internal error happens while deleting the file from the workspace
+            or its record from table.
 
         """
         api_path = f"/{self.tag}/"
