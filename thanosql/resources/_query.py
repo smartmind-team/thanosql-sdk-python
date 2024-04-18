@@ -66,7 +66,7 @@ class QueryService(ThanoSQLService):
         schema: Optional[str] = None,
         table_name: Optional[str] = None,
         overwrite: Optional[bool] = None,
-        max_results: Optional[int] = None,
+        max_results: int = 100,
     ) -> QueryLog:
         """Executes a query string.
 
