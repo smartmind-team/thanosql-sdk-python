@@ -213,9 +213,7 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     completed_changed_query = f"SELECT name, price FROM {basic_table_name} LIMIT 0"
 
     # direct entry template
-    res = client.query.execute(
-        query=changed_query_template_string, parameters=params, max_results=10
-    )
+    res = client.query.execute(query=changed_query_template_string, parameters=params)
     assert isinstance(res, QueryLog)
     assert res.error_result is None
     assert res.destination_schema == "qm"
@@ -231,7 +229,9 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
 
     # direct entry without template or parameters
     res = client.query.execute(
-        query=plain_query_template_string, table_name=query_test_table_name
+        query=plain_query_template_string,
+        table_name=query_test_table_name,
+        max_results=0,
     )
     assert isinstance(res, QueryLog)
     assert res.error_result is None
@@ -239,7 +239,7 @@ def test_post_query_success(client: ThanoSQL, basic_table_name, empty_table_name
     assert res.query == plain_query_template_string
     assert res.destination_table_name == query_test_table_name
 
-    # since max_results is 0 by default, there should be no records at all
+    # since max_results is 0, there should be no records at all
     assert res.records is None
 
     # make sure the table is created in public schema
@@ -269,7 +269,7 @@ def test_query_log_records(client: ThanoSQL, empty_table):
     SELECT table_name FROM information_schema.tables
     WHERE table_schema = 'public'
     """
-    res = client.query.execute(query=query, max_results=100)
+    res = client.query.execute(query=query)
     assert isinstance(res.records, Records)
 
     # check if to_df is working and check that records is nonempty
