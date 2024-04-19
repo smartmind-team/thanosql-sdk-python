@@ -43,6 +43,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
             table=basic_table_name,
             column=fake.unique.pystr(8),
             dir=dir_name,
+            if_exists="replace",
         )
 
     # trying to insert text into integer column
@@ -53,12 +54,13 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
             table=basic_table_name,
             column=int_column_name,
             dir=dir_name,
+            if_exists="replace",
         )
 
     # upload without db_commit and dir
     # note that we cannot check the existence of uploaded files as it requires user_data_root
     # which can technically be saved, but it increases complexity and safety risk
-    res = client.file.upload(path=file_name)
+    res = client.file.upload(path=file_name, if_exists="replace")
     assert res["data"]["file_path"] == default_file_path
 
     # upload with db_commit and dir
@@ -71,6 +73,7 @@ def test_upload_file(client: ThanoSQL, basic_table_name: str):
         table=basic_table_name,
         column=column_name,
         dir=dir_name,
+        if_exists="replace",
     )
     assert res["data"]["file_path"] == f"drive/{dir_name}/{file_name}"
     assert res["data"]["table_name"] == basic_table_name
@@ -87,6 +90,7 @@ def test_get_files(client: ThanoSQL):
 
     res = client.file.list(path=f"drive/{dir_name}/*")
     # at least the file we just uploaded
+    assert isinstance(res["data"]["matched_pathnames"], list)
     assert len(res["data"]["matched_pathnames"]) >= 1
 
 
