@@ -125,8 +125,6 @@ class QueryService(ThanoSQLService):
 
         Raises
         ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
         ThanoSQLValueError
             - If invalid input combination is provided; that is:
                 - query, template_id, and template_name are all empty, or
@@ -136,13 +134,6 @@ class QueryService(ThanoSQLService):
             - If query and parameters are used but the template has invalid format.
             - If rendering query template by substituting in parameters fails, either \
                 by direct query template or templates from the database.
-        ThanoSQLNotFoundError
-            - If schema does not exist.
-            - If query template from the database is to be retrieved but no matching \
-                template_id or template_name is found.
-        ThanoSQLAlreadyExistsError
-            - If a table with the same table_name already exists and overwrite \
-                is not set to True.
 
         """
         try:
@@ -224,8 +215,6 @@ class QueryLogService(ThanoSQLService):
 
         Raises
         ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
         ThanoSQLValueError
             If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
 
@@ -316,13 +305,9 @@ class QueryTemplateService(ThanoSQLService):
 
         Raises
         ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
         ThanoSQLValueError
             - If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
             - If order_by is not one of "recent", "name_asc", or "name_desc".
-        ThanoSQLInternalError
-            If an error happens while fetching query templates from the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}"
@@ -368,15 +353,9 @@ class QueryTemplateService(ThanoSQLService):
 
         Raises
         ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
         ThanoSQLValueError
             - If the template name contains invalid characters or is too long.
             - If the query template contains invalid formatting.
-        ThanoSQLAlreadyExistsError
-            If a query template with the same name already exists.
-        ThanoSQLInternalError
-            If an error happens while storing the query template to the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}"
@@ -401,15 +380,6 @@ class QueryTemplateService(ThanoSQLService):
         -------
         QueryTemplate
             A QueryTemplate object.
-
-        Raises
-        ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
-        ThanoSQLNotFoundError
-            If the requested query template is not found.
-        ThanoSQLInternalError
-            If an error happens while fetching the query template from the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}/{name}"
@@ -442,18 +412,10 @@ class QueryTemplateService(ThanoSQLService):
 
         Raises
         ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
         ThanoSQLValueError
             - If the new template name is set but is empty or null, contains invalid \
                 characters, or is too long.
             - If the new query template is set but is null or contains invalid formatting.
-        ThanoSQLNotFoundError
-            If the query template with current_name does not exist.
-        ThanoSQLAlreadyExistsError
-            If a query template with the same name as new_name already exists.
-        ThanoSQLInternalError
-            If an error happens while updating the query template in the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}/{current_name}"
@@ -479,15 +441,6 @@ class QueryTemplateService(ThanoSQLService):
                 {
                     "message": "string"
                 }
-
-        Raises
-        ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
-        ThanoSQLNotFoundError
-            If the requested query template is not found.
-        ThanoSQLInternalError
-            If an error happens while deleting the query template from the database.
 
         """
         path = f"/{self.query.tag}/{self.tag}/{name}"

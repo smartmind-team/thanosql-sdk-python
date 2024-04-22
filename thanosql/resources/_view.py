@@ -66,14 +66,8 @@ class ViewService(ThanoSQLService):
 
         Raises
         ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
         ThanoSQLValueError
             If offset is less than 0 or if limit is not between 0 to 100 (inclusive).
-        ThanoSQLNotFoundError
-            If schema is not found.
-        ThanoSQLInternalError
-            If an error happens while fetching views from the database.
 
         """
         path = f"/{self.tag}/"
@@ -108,15 +102,6 @@ class ViewService(ThanoSQLService):
         View
             A View object.
 
-        Raises
-        ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
-        ThanoSQLNotFoundError
-            If schema or view is not found.
-        ThanoSQLInternalError
-            If an error happens while fetching the view from the database.
-
         """
         path = f"/{self.tag}/{name}"
         query_params = self._create_input_dict(schema=schema)
@@ -150,15 +135,6 @@ class ViewService(ThanoSQLService):
                     "message": "string",
                     "view_name": "string"
                 }
-
-        Raises
-        ------
-        ThanoSQLPermissionError
-            If an invalid API token is provided.
-        ThanoSQLNotFoundError
-            If schema or view is not found.
-        ThanoSQLInternalError
-            If an error happens while deleting the view from the database.
 
         """
         path = f"/{self.tag}/{name}"
