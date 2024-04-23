@@ -87,7 +87,7 @@ class ViewService(ThanoSQLService):
         return parsed_response
 
     def get(self, name: str, schema: Optional[str] = None) -> View:
-        """Shows the details the specified view.
+        """Shows the details of the specified view.
 
         Parameters
         ----------
