@@ -11,6 +11,37 @@ import thanosql._error as thanosql_error
 
 
 class ThanoSQLBaseClient:
+    """Base client for accessing various ThanoSQL services.
+
+    Attributes
+    ----------
+    token: str
+        Access token to be used in the request header.
+    base_url: str
+        Base URL of the ThanoSQL service.
+    version: str
+        Version of the API.
+    url: str
+        Base API URL of the ThanoSQL service that contains the base_url
+        and version.
+
+    Raises
+    ------
+    ThanoSQLPermissionError
+        - If an invalid API token is provided.
+        - If an operation is forbidden.
+    ThanoSQLAlreadyExistsError
+        If an object with the same name already exists.
+    ThanoSQLNotFoundError
+        If a requested object is not found.
+    ThanoSQLValueError
+        If input values are in incorrect format.
+    ThanoSQLInternalError
+        If an error happens while doing operations on the workspace
+        or fetching data from the database.
+
+    """
+
     def __init__(self, token: str, base_url: str, version: str) -> None:
         self.token: str = token
         self.base_url: str = base_url.strip("/")
