@@ -426,7 +426,7 @@ class QueryTemplateService(ThanoSQLService):
         return self._parse_query_template_response(raw_response)
 
     def delete(self, name: str) -> dict:
-        """Deletes a query template from the workspace.
+        """Deletes the specified query template.
 
         Parameters
         ----------

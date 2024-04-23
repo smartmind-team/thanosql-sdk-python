@@ -115,7 +115,7 @@ class ViewService(ThanoSQLService):
         return parsed_response
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
-        """Deletes a view from the workspace.
+        """Deletes the specified view.
 
         Parameters
         ----------

@@ -23,7 +23,7 @@ class FileService(ThanoSQLService):
         super().__init__(client=client, tag="file")
 
     def list(self, path: Union[str, os.PathLike]) -> dict:
-        """Lists all files and directories under a specified path.
+        """Lists all files and directories under the specified path.
 
         Parameters
         ----------
@@ -130,7 +130,7 @@ class FileService(ThanoSQLService):
         column: Optional[str] = None,
         schema: Optional[str] = None,
     ) -> dict:
-        """Deletes a file from the workspace.
+        """Deletes the specified file from the workspace.
 
         Parameters
         ----------
