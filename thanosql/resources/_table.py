@@ -152,7 +152,7 @@ class TableService(ThanoSQLService):
         return parsed_response
 
     def get(self, name: str, schema: Optional[str] = None) -> Table:
-        """Shows the details of a table stored in the workspace.
+        """Shows the details of the specified table.
 
         Parameters
         ----------
@@ -180,7 +180,7 @@ class TableService(ThanoSQLService):
     def update(
         self, name: str, schema: Optional[str] = None, table: Optional[BaseTable] = None
     ) -> Table:
-        """Updates a table stored in the workspace.
+        """Updates the specified table.
 
         Parameters
         ----------
@@ -279,7 +279,7 @@ class TableService(ThanoSQLService):
         if_exists: str = "fail",
     ) -> Table:
         """Uploads the contents of a CSV or Excel-like file or Pandas DataFrame
-        into a table in the workspace.
+        into the specified table.
 
         Either a CSV or Excel-like (.xls, .xlsx, .xlsm, .xlsb, .odf, .ods, .odt)
         file or DataFrame must be specified. However, both should not be used
@@ -291,10 +291,10 @@ class TableService(ThanoSQLService):
             The name of the table created from the file or DataFrame.
         file : str or PathLike, optional
             CSV or Excel-like file containing tabulated data to be uploaded
-            to a table in the workspace.
+            to the specified table.
         df : DataFrame, optional
-            Pandas DataFrame containing data to be uploaded to a table in
-            the workspace.
+            Pandas DataFrame containing data to be uploaded to the specified 
+            table.
         schema : str, optional
             The schema to save the created table in. If not specified, the table
             will be saved to "public".
@@ -400,7 +400,7 @@ class TableService(ThanoSQLService):
             raise ThanoSQLValueError("No file or DataFrame provided for upload")
 
     def delete(self, name: str, schema: Optional[str] = None) -> dict:
-        """Deletes a table from the workspace.
+        """Deletes the specified table.
 
         Parameters
         ----------
@@ -446,7 +446,7 @@ class Table(BaseTable):
         offset: Optional[int] = None,
         limit: Optional[int] = None,
     ) -> Records:
-        """Lists the records of a table in the workspace.
+        """Lists the records of the table.
 
         Parameters
         ----------
@@ -488,7 +488,7 @@ class Table(BaseTable):
         self,
         timezone_offset: Optional[int] = None,
     ) -> None:
-        """Downloads the records of a table as a CSV file.
+        """Downloads the records of the table as a CSV file.
 
         Parameters
         ----------
@@ -513,7 +513,7 @@ class Table(BaseTable):
         self,
         records: List[dict],
     ) -> Table:
-        """Inserts records to a table in the workspace.
+        """Inserts records to the specified table.
 
         Parameters
         ----------
@@ -615,7 +615,7 @@ class TableTemplateService(ThanoSQLService):
         return parsed_response
 
     def get(self, name: str, version: Optional[str] = None) -> dict:
-        """Shows the details of a table template stored in the workspace.
+        """Shows the details of the specified table template.
 
         Parameters
         ----------
@@ -708,7 +708,7 @@ class TableTemplateService(ThanoSQLService):
         return parsed_response
 
     def delete(self, name: str, version: Optional[str] = None) -> dict:
-        """Deletes a table template from the workspace.
+        """Deletes the specified table template.
 
         Parameters
         ----------

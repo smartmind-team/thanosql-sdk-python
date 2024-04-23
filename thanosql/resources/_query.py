@@ -369,7 +369,7 @@ class QueryTemplateService(ThanoSQLService):
         return self._parse_query_template_response(raw_response)
 
     def get(self, name: str) -> QueryTemplate:
-        """Shows the details of a query template stored in the workspace.
+        """Shows the details of the specified query template.
 
         Parameters
         ----------
@@ -392,7 +392,7 @@ class QueryTemplateService(ThanoSQLService):
         new_name: Optional[str] = None,
         query: Optional[str] = None,
     ) -> QueryTemplate:
-        """Updates a query template stored in the workspace.
+        """Updates the specified query template.
 
         Parameters
         ----------
