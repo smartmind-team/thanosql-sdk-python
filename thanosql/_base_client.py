@@ -125,14 +125,30 @@ class ThanoSQLBaseClient:
                     message = response_json["error"].get("message", message)
 
                 if code in {400, 405, 422}:
-                    raise thanosql_error.ThanoSQLValueError(message=message)
+                    raise thanosql_error.ThanoSQLValueError(
+                        message=f"Invalid input: {message}"
+                    )
                 elif code in {401, 403}:
-                    raise thanosql_error.ThanoSQLPermissionError(message=message)
+                    raise thanosql_error.ThanoSQLPermissionError(
+                        message=f"Operation not permitted: {message}"
+                    )
                 elif code == 404:
-                    raise thanosql_error.ThanoSQLNotFoundError(message=message)
+                    raise thanosql_error.ThanoSQLNotFoundError(
+                        message=f"Not found: {message}"
+                    )
                 elif code == 409:
-                    raise thanosql_error.ThanoSQLAlreadyExistsError(message=message)
+                    raise thanosql_error.ThanoSQLAlreadyExistsError(
+                        message=f"Object already exists: {message}"
+                    )
+                elif code == 413:
+                    raise thanosql_error.ThanoSQLConnectionError(
+                        message=f"Entity size too large: {message}"
+                    )
                 elif code == 500:
+                    raise thanosql_error.ThanoSQLInternalError(
+                        message=f"Internal server error: {message}"
+                    )
+                else:
                     raise thanosql_error.ThanoSQLInternalError(message=message)
 
             if stream:
