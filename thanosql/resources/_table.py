@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
 import pandas as pd
+from numpy import nan
 from pydantic import Field, TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
@@ -293,7 +294,7 @@ class TableService(ThanoSQLService):
             CSV or Excel-like file containing tabulated data to be uploaded
             to the specified table.
         df : DataFrame, optional
-            Pandas DataFrame containing data to be uploaded to the specified 
+            Pandas DataFrame containing data to be uploaded to the specified
             table.
         schema : str, optional
             The schema to save the created table in. If not specified, the table
@@ -380,6 +381,7 @@ class TableService(ThanoSQLService):
         elif df is not None:
             path = f"/{self.tag}/{name}/upload/json"
 
+            df = df.replace({nan: None})
             df_json = df.to_dict(orient="records")
             query_params = self._create_input_dict(
                 schema=schema, if_exists=if_exists_enum.value

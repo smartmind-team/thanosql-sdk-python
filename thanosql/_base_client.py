@@ -132,8 +132,10 @@ class ThanoSQLBaseClient:
                     raise thanosql_error.ThanoSQLNotFoundError(message=message)
                 elif code == 409:
                     raise thanosql_error.ThanoSQLAlreadyExistsError(message=message)
-                elif code == 500:
-                    raise thanosql_error.ThanoSQLInternalError(message=message)
+                # includes 413 and 500, among many others
+                # will show up as ThanoSQLInternalError with the message from raise_for_status
+                else:
+                    response.raise_for_status()
 
             if stream:
                 filename = response.headers.get(
