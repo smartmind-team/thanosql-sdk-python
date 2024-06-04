@@ -1,13 +1,39 @@
 from __future__ import annotations
 
-import json
 import os
-from typing import TYPE_CHECKING, Optional, Union
+from datetime import datetime
+from typing import TYPE_CHECKING, Any, Optional, Union
+
+from pydantic import TypeAdapter
 
 from thanosql._service import ThanoSQLService
+from thanosql.resources._model import BaseModel
 
 if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
+
+
+class ContentInfo(BaseModel):
+    name: str
+    format: Optional[str] = None
+    path: str
+    type: str
+    size: Optional[int] = None
+    writable: bool
+    content: Any = None
+    created_at: datetime
+    updated_at: datetime
+
+
+class Content(BaseModel):
+    content_info: ContentInfo
+    root: str
+
+
+class Size(BaseModel):
+    max_size: int
+    used_size: int
+    avail_size: int
 
 
 class FileService(ThanoSQLService):
@@ -21,164 +47,124 @@ class FileService(ThanoSQLService):
     """
 
     def __init__(self, client: ThanoSQL) -> None:
-        super().__init__(client=client, tag="file")
+        super().__init__(client=client, tag="fm")
 
-    def list(self, path: Union[str, os.PathLike]) -> dict:
-        """Lists all files and directories under the specified path.
+    def _parse_file_content_response(self, raw_response: dict):
+        file_content_adapter = TypeAdapter(Content)
+        parsed_response = file_content_adapter.validate_python(raw_response)
+        return parsed_response
+
+    def get(
+        self,
+        path: Optional[Union[str, os.PathLike]] = None,
+        option: Optional[str] = None,
+    ) -> Optional[Content]:
+        """Details the information of a file or directory in the specified path.
 
         Parameters
         ----------
         path: str or path_like
-            The path that contains the files and directories to be listed.
-            It should begin with 'drive/'. Regex pattern is recommended.
+            The path to the file/directory relative to the user data root
+            (default value is "/", the user data root directory itself)
+        option: controls the behavior of the API
+            - default (None): retrieves file/directory information
+            - download: downloads a file (directory download is not possible)
 
         Returns
         -------
-        dict
-            A dictionary containing the list of files and folders under
-            the input path in the format of::
-
-                {
-                    "data": {
-                        "matched_pathnames": [list of matched pathnames],
-                    }
-                }
+        Depending on option:
+        - default (None): Returns a Content Pydantic object containing
+            information on the target path
+        - download: Downloads the requested file and returns nothing
 
         Raises
         ------
         ThanoSQLValueError
-            If path is not within the 'drive' directory.
+            If user attempts to download a directory (when option="download")
 
         """
-        api_path = f"/{self.tag}/"
-        query_params = self._create_input_dict(search_path=path)
+        path_prefix = "fm"
+        api_path = "/contents/"
+        if path:
+            api_path = api_path + str(path)
+        query_params = self._create_input_dict(option=option)
+
+        if option == "download":
+            self.client._request(
+                method="get",
+                path=api_path,
+                path_prefix=path_prefix,
+                query_params=query_params,
+                stream=True,
+            )
+        else:
+            res = self.client._request(
+                method="get",
+                path=api_path,
+                path_prefix=path_prefix,
+                query_params=query_params,
+            )
+            return self._parse_file_content_response(res)
+
+    def create(
+        self,
+        path: Optional[Union[str, os.PathLike]] = None,
+        file: Optional[Union[str, os.PathLike]] = None,
+    ) -> Content:
+        """Uploads a file to the workspace or creates an empty folder.
+
+        Parameters
+        ----------
+        path: str or path_like
+            The destination path of the upload/folder creation relative to the user data root.
+            Should point to a (would-be) directory (default value is "/", the user data root directory itself)
+        file : str or PathLike, optional
+            The file to be uploaded. If left empty, creates an empty folder in the given path.
+
+        Returns
+        -------
+        A Content Pydantic object containing information on the created file/folder.
+
+        Raises
+        ------
+        ThanoSQLValueError
+            If path does not point to a (would-be) directory
+
+        """
+        path_prefix = "fm"
+        api_path = "/contents/"
+        if path:
+            api_path = api_path + str(path)
 
         res = self.client._request(
-            method="get", path=api_path, query_params=query_params
-        )
-        matched_pathnames_list = json.loads(res["data"]["matched_pathnames"])
-        res["data"]["matched_pathnames"] = matched_pathnames_list
-
-        return res
-
-    def upload(
-        self,
-        path: Union[str, os.PathLike],
-        db_commit: Optional[bool] = None,
-        table: Optional[str] = None,
-        column: Optional[str] = None,
-        schema: Optional[str] = None,
-        dir: Optional[str] = None,
-        if_exists: Optional[str] = None,
-    ) -> dict:
-        """Uploads a file to the workspace.
-
-        Parameters
-        ----------
-        path: str or path_like
-            The path to the local file to be uploaded to the workspace.
-        db_commit: bool, optional
-            Whether to save the uploaded file path to a table or not.
-        table: str, optional
-            The name of the table to save the uploaded file path in.
-            Only relevant if db_commit is set to True.
-        column: str, optional
-            The column name in the table where the uploaded file path will be
-            saved in. Only relevant if db_commit is set to True.
-        schema: str, optional
-            The schema where the table to save the uploaded file path in resides.
-            Only relevant if db_commit is set to True and defaults to "public".
-        dir: str, optional
-            Path to directory under drive/ to store the uploaded file in.
-            If the directory does not exist, it will be created by the API.
-
-        Returns
-        -------
-        dict
-            Dictionary containing values of "file_path", "table_name", "column_name",
-            and "schema". "file_path" will always be returned, while the rest are
-            only returned if db_commit is set to True. The result is in the format of::
-
-                {
-                    "data": {
-                        "file_path": file_path,
-                        "table_name": table_name | null,
-                        "column_name": column_name | null,
-                        "schema": schema | null
-                    }
-                }
-
-        Raises
-        ------
-        ThanoSQLValueError
-            - If dir is not within the 'drive' directory.
-            - If the path cannot be saved to table due to integrity or data error.
-
-        """
-        api_path = f"/{self.tag}/"
-        query_params = self._create_input_dict(
-            db_commit=db_commit,
-            table_name=table,
-            column_name=column,
-            schema=schema,
-            dir=dir,
-            if_exists=if_exists,
+            method="post", path=api_path, path_prefix=path_prefix, file=file
         )
 
-        return self.client._request(
-            method="post", path=api_path, query_params=query_params, file=path
-        )
+        return self._parse_file_content_response(res)
 
     def delete(
         self,
         path: Union[str, os.PathLike],
-        db_commit: Optional[bool] = None,
-        table: Optional[str] = None,
-        column: Optional[str] = None,
-        schema: Optional[str] = None,
-    ) -> dict:
-        """Deletes the specified file from the workspace.
+    ) -> None:
+        """Deletes the specified file or directory permanently from the workspace.
 
         Parameters
         ----------
         path: str or path_like
-            The path to the file to be removed from the workspace.
-        db_commit: bool, optional
-            Whether to remove the file path from a table or not.
-        table: str, optional
-            The name of the table where the file path to be removed is in.
-            Only relevant if db_commit is set to True.
-        column: str, optional
-            The column name in the table where the file path to be removed
-            is in. Only relevant if db_commit is set to True.
-        schema: str, optional
-            The schema where the table to remove the file path from resides.
-            Only relevant if db_commit is set to True and defaults to "public".
+            The path to the file or directory to be removed from the workspace.
+            Relative to the user data root, no default value.
 
         Returns
         -------
-        dict
-            A dictionary containing a success message in the format of::
-
-                {
-                    "message": "string"
-                }
+        No content
 
         Raises
         ------
-        ThanoSQLValueError
-            If path is not within the 'drive' directory.
 
         """
-        api_path = f"/{self.tag}/"
-        query_params = self._create_input_dict(
-            file_path=path,
-            db_commit=db_commit,
-            table_name=table,
-            column_name=column,
-            schema=schema,
-        )
+        path_prefix = "fm"
+        api_path = f"/contents/{str(path)}"
 
         return self.client._request(
-            method="delete", path=api_path, query_params=query_params
+            method="delete", path=api_path, path_prefix=path_prefix
         )
