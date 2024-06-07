@@ -286,6 +286,9 @@ class TableService(ThanoSQLService):
         file or DataFrame must be specified. However, both should not be used
         at the same time.
 
+        Note: If the selected option is a Strict Open XML Spreadsheet (*.xlsx) file,
+        change it to Excel Workbook (*.xlsx), save it, and try loading it again with pandas.
+
         Parameters
         ----------
         name : str
