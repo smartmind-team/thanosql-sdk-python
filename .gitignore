@@ -125,4 +125,7 @@ dmypy.json
 trial*
 *.jpg
 *.csv
+*.txt
+*.ipynb
 !file*
+output.bin

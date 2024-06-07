@@ -55,10 +55,14 @@ class ThanoSQLBaseClient:
     def _create_full_url(
         self,
         path: str = "",
+        path_prefix: str = "",
         path_params: Optional[dict] = None,
         query_params: Optional[dict] = None,
     ) -> str:
         url = self.url + path
+
+        if path_prefix:
+            url = url.replace("api", f"{path_prefix}/api")
 
         if path_params:
             for param, value in path_params.items():
@@ -77,6 +81,7 @@ class ThanoSQLBaseClient:
         self,
         method: str,
         path: str,
+        path_prefix: str = "",
         path_params: Optional[dict] = None,
         query_params: Optional[dict] = None,
         payload: Optional[dict] = None,
@@ -84,7 +89,10 @@ class ThanoSQLBaseClient:
         stream: bool = False,
     ) -> Any:
         full_url = self._create_full_url(
-            path=path, path_params=path_params, query_params=query_params
+            path=path,
+            path_prefix=path_prefix,
+            path_params=path_params,
+            query_params=query_params,
         )
 
         headers = self._create_auth_header()
@@ -141,7 +149,7 @@ class ThanoSQLBaseClient:
                 filename = response.headers.get(
                     "Content-Disposition", "filename=output.bin"
                 ).split("filename=")[1]
-                with open(filename, "wb") as handle:
+                with open(filename.strip('"'), "wb") as handle:
                     for data in tqdm(response.iter_content()):
                         handle.write(data)
                 return {"message": f"Successfully downloaded {filename}."}
