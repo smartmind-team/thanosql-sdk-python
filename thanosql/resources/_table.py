@@ -234,6 +234,7 @@ class TableService(ThanoSQLService):
         name: str,
         table: TableObject,
         schema: Optional[str] = None,
+        if_not_exists: Optional[bool] = None,
     ) -> Table:
         """Creates a new table.
 
@@ -248,6 +249,11 @@ class TableService(ThanoSQLService):
         schema : str, optional
             The schema to save the created table in. If not specified, the table
             will be saved to "public".
+        if_not_exists: bool, optional
+            Whether to throw an error if a table of the same name already
+            exists. When set to False or unset, an error will be shown. When True,
+            the table will only be created if it does not exist already.
+            Otherwise, do nothing.
 
         Returns
         -------
@@ -261,7 +267,9 @@ class TableService(ThanoSQLService):
 
         """
         path = f"/{self.tag}/{name}"
-        query_params = self._create_input_dict(schema=schema)
+        query_params = self._create_input_dict(
+            schema=schema, if_not_exists=if_not_exists
+        )
         payload = self._create_input_dict(table=table)
 
         raw_response = self.client._request(
