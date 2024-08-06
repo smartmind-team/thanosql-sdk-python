@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import enum
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import TypeAdapter
 
-from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql.resources._model import BaseModel
 from thanosql.resources._record import Records
@@ -28,11 +26,6 @@ class QueryLog(BaseModel):
     error_result: Optional[str]
     created_at: Optional[datetime]
     records: Optional[Records] = None
-
-
-class QueryType(enum.Enum):
-    THANOSQL = "thanosql"
-    PSQL = "psql"
 
 
 class QueryService(ThanoSQLService):
@@ -59,7 +52,6 @@ class QueryService(ThanoSQLService):
     def execute(
         self,
         query: Optional[str] = None,
-        query_type: str = "thanosql",
         template_id: Optional[int] = None,
         template_name: Optional[str] = None,
         parameters: Optional[dict] = None,
@@ -88,9 +80,6 @@ class QueryService(ThanoSQLService):
         ----------
         query: str, optional
             The query string or template to be executed.
-        query_type: str, default "thanosql"
-            The type of the query to be executed. Can only be one of
-            "thanosql" or "psql".
         template_id: int, optional
             The ID number of the query template to be used.
             Only relevant when a query template from the database is needed,
@@ -129,18 +118,12 @@ class QueryService(ThanoSQLService):
             - If invalid input combination is provided; that is:
                 - query, template_id, and template_name are all empty, or
                 - more than one of query, template_id, and template_name are non-empty
-            - If a value other than "thanosql" or "psql" is provided as query_type.
             - If max_results is not between 0 and 100 (inclusive).
             - If query and parameters are used but the template has invalid format.
             - If rendering query template by substituting in parameters fails, either \
                 by direct query template or templates from the database.
 
         """
-        try:
-            query_type_enum = QueryType(query_type)
-        except Exception as e:
-            raise ThanoSQLValueError(str(e))
-
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
             schema=schema,
@@ -149,7 +132,6 @@ class QueryService(ThanoSQLService):
             max_results=max_results,
         )
         payload = self._create_input_dict(
-            query_type=query_type_enum.value,
             query_string=query,
             template_id=template_id,
             template_name=template_name,
