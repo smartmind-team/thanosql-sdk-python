@@ -85,7 +85,7 @@ class ThanosMagic(Magics):
         if is_multiple_queries(query_string):
             raise ThanoSQLSyntaxError("Multiple Queries are not supported.")
 
-        query_context = {"query_string": query_string, "query_type": "thanosql"}
+        query_context = {"query_string": query_string}
 
         return request_thanosql_engine(self.ws, api_url, api_token, query_context)
 
@@ -103,6 +103,6 @@ class ThanosMagic(Magics):
 
         query_string = cell
 
-        query_context = {"query_string": query_string, "query_type": "psql"}
+        query_context = {"query_string": query_string}
 
         return request_thanosql_engine(self.ws, api_url, api_token, query_context)
