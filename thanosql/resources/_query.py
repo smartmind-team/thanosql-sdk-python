@@ -127,6 +127,7 @@ class QueryService(ThanoSQLService):
         ------
         ThanoSQLValueError
             - If invalid input combination is provided; that is:
+
                 - query, template_id, and template_name are all empty, or
                 - more than one of query, template_id, and template_name are non-empty
             - If a value other than "thanosql" or "psql" is provided as query_type.
@@ -294,6 +295,7 @@ class QueryTemplateService(ThanoSQLService):
             lists up to 100 results per call. Must range between 0 to 100.
         order_by : str, optional
             How to order the results. There are only three possible values:
+
             - recent: based on the date of creation, from most recent to oldest
             - name_asc: based on the name of the template, from A to Z
             - name_desc: based on the name of the template, from Z to A

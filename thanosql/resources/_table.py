@@ -195,18 +195,18 @@ class TableService(ThanoSQLService):
             updated. Any attribute of BaseTable can be modified, and if left
             unset, the current value will be maintained after update.
             The attributes are as follows:
-            - name: new name to rename the table to
-            - schema: new schema to move the table to
-            - columns: new columns of the updated table. All new columns
-                must be in this object, including columns that already exist
-                in the original table. If this attribute is set but some
-                original columns are not included, they will be removed from
-                the table.
-            - constraints: new constraints of the updated table. All new
-                constraints must be in this object, including constraints
-                that already exist in the original table. If this attribute is
-                set but some original constraints are not included, they will
-                be removed from the table.
+                - name: new name to rename the table to
+                - schema: new schema to move the table to
+                - columns: new columns of the updated table. All new columns \
+                    must be in this object, including columns that already exist \
+                    in the original table. If this attribute is set but some \
+                    original columns are not included, they will be removed from \
+                    the table.
+                - constraints: new constraints of the updated table. All new \
+                    constraints must be in this object, including constraints \
+                    that already exist in the original table. If this attribute is \
+                    set but some original constraints are not included, they will \
+                    be removed from the table.
 
         Returns
         -------
@@ -311,11 +311,11 @@ class TableService(ThanoSQLService):
         if_exists : str, default "fail"
             What to do if table of the same name already exists. There are only
             three available values:
-            - fail: fails (throws an error) if the same table exists
-            - append: appends records into an existing table (columns must match
-                in order to not make an error)
-            - replace: deletes existing table and creates a new one with the
-                given name
+                - fail: fails (throws an error) if the same table exists
+                - append: appends records into an existing table (columns must match \
+                    in order to not make an error)
+                - replace: deletes existing table and creates a new one with the \
+                    given name
 
         Returns
         -------
@@ -533,10 +533,10 @@ class Table(BaseTable):
         on_conflict : str, default "fail"
             What to do when conflict(s) due to unique constraint violation happen(s).
             There are only two available values:
-            - fail: fails (throws an error) if any of the record violates the target
-                table's unique constraint(s)
-            - skip: skips record(s) that violate(s) unique constraint(s) and insert
-                the rest
+                - fail: fails (throws an error) if any of the record violates the target \
+                    table's unique constraint(s)
+                - skip: skips record(s) that violate(s) unique constraint(s) and insert \
+                    the rest
 
         Returns
         -------
@@ -603,6 +603,7 @@ class TableTemplateService(ThanoSQLService):
             contain. If not set, all table templates are returned by default.
         order_by : str, optional
             How to order the results. There are only three possible values:
+
             - recent: based on the date of creation, from most recent to oldest
             - name_asc: based on the name of the template, from A to Z
             - name_desc: based on the name of the template, from Z to A
