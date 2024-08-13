@@ -436,6 +436,11 @@ class TableService(ThanoSQLService):
         )
 
 
+class OnConflict(enum.Enum):
+    FAIL = "fail"
+    SKIP = "skip"
+
+
 class Table(BaseTable):
     """Extends the BaseTable class, which has name, schema,
     columns, and constraints as attributes, with a table service
@@ -517,14 +522,21 @@ class Table(BaseTable):
     def insert(
         self,
         records: List[dict],
+        on_conflict: str = "fail",
     ) -> Table:
         """Inserts records to the specified table.
 
         Parameters
         ----------
         records : list of dict
-            The records to be inserted in the format of a list of
-            column-value pairs.
+            The records to be inserted in the format of a list of column-value pairs.
+        on_conflict : str, default "fail"
+            What to do when conflict(s) due to unique constraint violation happen(s).
+            There are only two available values:
+            - fail: fails (throws an error) if any of the record violates the target
+                table's unique constraint(s)
+            - skip: skips record(s) that violate(s) unique constraint(s) and insert
+                the rest
 
         Returns
         -------
@@ -534,11 +546,19 @@ class Table(BaseTable):
         Raises
         ------
         ThanoSQLValueError
-            If the records are in an invalid format or contain invalid contents.
+            - If on_conflict is not one of "fail" or "skip".
+            - If the records are in an invalid format or contain invalid contents.
 
         """
+        try:
+            on_conflict_enum = OnConflict(on_conflict)
+        except Exception as e:
+            raise ThanoSQLValueError(str(e))
+
         path = f"/{self.service.tag}/{self.name}/records"
-        query_params = self.service._create_input_dict(schema=self.table_schema)
+        query_params = self.service._create_input_dict(
+            schema=self.table_schema, on_conflict=on_conflict_enum.value
+        )
 
         raw_response = self.service.client._request(
             method="post", path=path, query_params=query_params, payload=records
