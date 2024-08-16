@@ -8,6 +8,7 @@ from pydantic import TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
+from thanosql._util import to_postgresql_value
 from thanosql.resources._model import BaseModel
 from thanosql.resources._record import Records
 
@@ -154,6 +155,80 @@ class QueryService(ThanoSQLService):
             template_id=template_id,
             template_name=template_name,
             parameters=parameters,
+        )
+
+        raw_response = self.client._request(
+            method="post", path=path, query_params=query_params, payload=payload
+        )
+
+        query_log_adapter = TypeAdapter(QueryLog)
+        parsed_response = query_log_adapter.validate_python(raw_response)
+        return parsed_response
+
+    def execute_values(
+        self,
+        query: str,
+        values: List[tuple],
+        schema: Optional[str] = None,
+        table_name: Optional[str] = None,
+        overwrite: Optional[bool] = None,
+        max_results: int = 100,
+    ) -> QueryLog:
+        """Executes a query string with psycopg value placeholder.
+
+        Unlike execute, query templates cannot be used. Following psycopg, only
+        a single `%s` placeholder is allowed.
+
+        Parameters
+        ----------
+        query: str
+            The query string with a placeholder to be executed.
+        values: list of tuples
+            List of values to be inserted in the placeholder.
+        schema: str, optional
+            The schema of the table to save the query results in. If not specified
+            and table_name is also empty, it defaults to "qm". If table_name is
+            specified, it defaults to "public".
+        table_name: str, optional
+            The name of the table to save the query results in. If not specified
+            while the query produces a result, an automatic table name will be given.
+        overwrite: bool, optional
+            Whether to overwrite the table if a table with the same `table_name`
+            and `schema` already exists. If not specified, the value is False.
+        max_results: int, optional
+            The maximum number of records to be returned by the response QueryLog.
+            If not specified, it defaults to 100.
+
+        Returns
+        -------
+        QueryLog
+            A query log object containing details about the results of the
+            executed query.
+
+        Raises
+        ------
+        ThanoSQLValueError
+            - If values is empty.
+            - If max_results is not between 0 and 100 (inclusive).
+
+        """
+        if len(values) == 0:
+            raise ThanoSQLValueError("Values cannot be empty")
+
+        values_str = [str(value) for value in values]
+        for value in values:
+            # converting tuple
+            value_str = ""
+
+        path = f"/{self.tag}/"
+        query_params = self._create_input_dict(
+            schema=schema,
+            table_name=table_name,
+            overwrite=overwrite,
+            max_results=max_results,
+        )
+        payload = self._create_input_dict(
+            query_string=query,
         )
 
         raw_response = self.client._request(
