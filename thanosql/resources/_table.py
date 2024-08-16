@@ -234,7 +234,7 @@ class TableService(ThanoSQLService):
         name: str,
         table: TableObject,
         schema: Optional[str] = None,
-        if_not_exists: Optional[bool] = None,
+        if_not_exists: bool = False,
     ) -> Table:
         """Creates a new table.
 
@@ -249,9 +249,9 @@ class TableService(ThanoSQLService):
         schema : str, optional
             The schema to save the created table in. If not specified, the table
             will be saved to "public".
-        if_not_exists: bool, optional
+        if_not_exists: bool, default False
             Whether to throw an error if a table of the same name already
-            exists. When set to False or unset, an error will be shown. When True,
+            exists. When set to False (default), an error will be shown. When True,
             the table will only be created if it does not exist already.
             Otherwise, do nothing.
 
