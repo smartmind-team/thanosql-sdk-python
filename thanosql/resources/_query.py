@@ -215,10 +215,19 @@ class QueryService(ThanoSQLService):
         if len(values) == 0:
             raise ThanoSQLValueError("Values cannot be empty")
 
-        values_str = [str(value) for value in values]
+        # Create a list of PSQL string representations of value tuples, such as
+        # ["(value1, value2)", "(value3, value4)"]
+        values_str_list = []
         for value in values:
-            # converting tuple
-            value_str = ""
+            value_transformed = tuple(map(to_postgresql_value, value))
+            value_str = ", ".join(value_transformed)
+            value_str = f"({value_str})"
+            values_str_list.append(value_str)
+
+        # Combine tuple strings into one valid PSQL values string, and then substitute
+        # it into user's original query, replacing the first %s placeholder
+        values_str = ",\n".join(values_str_list)
+        query_replaced = query.replace("%s", values_str, 1)
 
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
@@ -227,9 +236,7 @@ class QueryService(ThanoSQLService):
             overwrite=overwrite,
             max_results=max_results,
         )
-        payload = self._create_input_dict(
-            query_string=query,
-        )
+        payload = self._create_input_dict(query_string=query_replaced)
 
         raw_response = self.client._request(
             method="post", path=path, query_params=query_params, payload=payload

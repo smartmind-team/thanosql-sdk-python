@@ -1,4 +1,5 @@
 import json
+from typing import Union
 
 
 def _stringify_list(val: object) -> str:
@@ -10,7 +11,7 @@ def _stringify_list(val: object) -> str:
     return str(val)
 
 
-def _to_postgresql_value_helper(val: object) -> object:
+def _to_postgresql_value_helper(val: object) -> Union[str, list]:
     # Helper function to convert Python objects into their PSQL representation
     # First, recursively apply the function to each element of lists
     if isinstance(val, list):
@@ -35,11 +36,11 @@ def _to_postgresql_value_helper(val: object) -> object:
         quoted_val = val.replace("\\'", "'").replace("'", "''")
         return f"'{quoted_val}'"
 
-    # For other types of objects, return it as it is
-    return val
+    # For other types of objects, return their string representation
+    return str(val)
 
 
-def to_postgresql_value(val: object) -> object:
+def to_postgresql_value(val: object) -> str:
     val = _to_postgresql_value_helper(val)
     # There are two possible array representations in PSQL,
     # '{{...}, {...}}' and ARRAY[[...], [...]]
