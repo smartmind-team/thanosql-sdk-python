@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from pydantic import TypeAdapter
 
 from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
-from thanosql._util import to_postgresql_value
+from thanosql._util import fill_query_placeholder
 from thanosql.resources._model import BaseModel
 from thanosql.resources._record import Records
 
@@ -168,23 +168,67 @@ class QueryService(ThanoSQLService):
     def execute_values(
         self,
         query: str,
-        values: List[tuple],
+        values: Union[List[tuple], List[dict]],
+        template: Optional[str] = None,
+        page_size: int = 100,
         schema: Optional[str] = None,
         table_name: Optional[str] = None,
         overwrite: Optional[bool] = None,
         max_results: int = 100,
     ) -> QueryLog:
-        """Executes a query string with psycopg value placeholder.
+        """Executes a query string with a value placeholder.
 
-        Unlike execute, query templates cannot be used. Following psycopg, only
-        a single `%s` placeholder is allowed.
+        Unlike execute, query templates cannot be used, as this might be confusing
+        when combined with value placeholders. Following psycopg, only a single main
+        placeholder is allowed. If multiple placeholders are required, users should
+        use templates. Unlike psycopg, we will use jinja formatting for consistency
+        with query template purposes.
 
         Parameters
         ----------
         query: str
-            The query string with a placeholder to be executed.
+            The query string with a "{{ val }}" placeholder to be executed.
         values: list of tuples
-            List of values to be inserted in the placeholder.
+            List of values to be inserted to the placeholder(s).
+        template: str, optional
+            How values should be formatted inside {{ val }}. If it is left
+            empty, values will just be listed inside brackets separated by commas.
+            In this case, values should be a list of tuples. For example, we have
+            the following values:
+            ```
+            [(1, "gangnam", "seoul"), (2, "haeundae", "busan")]
+            ```
+            and we leave template empty. The original query looks like
+            ```
+            VALUES
+                {{ val }}
+            ```
+            The rendered query will look like
+            ```
+            VALUES
+                (1, 'gangnam', 'seoul'),
+                (2, 'haeundae', 'busan')
+            ```
+            Meanwhile, if we have the following named values:
+            ```
+            [
+                {"id": 1, "name": "gangnam", "city": "seoul"},
+                {"id": 2, "name": "haeundae", "city": "busan"},
+            ]
+            ```
+            and we have the following template:
+            ```
+            ({{ id }}, CONCAT(INITCAP({{ name }}), '-gu'), INITCAP({{ city }}))
+            ```
+            the rendered query will be:
+            ```
+            VALUES
+                (1, CONCAT(INITCAP('gangnam', '-gu')), INITCAP('seoul')),
+                (2, CONCAT(INITCAP('haeundae', '-gu')), INITCAP('busan'))
+            ```
+        page_size: int, default 100
+            The maximum number of rows (set of values) to be sent in one statement.
+            If not specified, it defaults to 100.
         schema: str, optional
             The schema of the table to save the query results in. If not specified
             and table_name is also empty, it defaults to "qm". If table_name is
@@ -195,7 +239,7 @@ class QueryService(ThanoSQLService):
         overwrite: bool, optional
             Whether to overwrite the table if a table with the same `table_name`
             and `schema` already exists. If not specified, the value is False.
-        max_results: int, optional
+        max_results: int, default 100
             The maximum number of records to be returned by the response QueryLog.
             If not specified, it defaults to 100.
 
@@ -209,25 +253,20 @@ class QueryService(ThanoSQLService):
         ------
         ThanoSQLValueError
             - If values is empty.
+            - If page_size is not between 1 and 100 (inclusive).
             - If max_results is not between 0 and 100 (inclusive).
+            - If the formats of template and values don't match.
 
         """
         if len(values) == 0:
             raise ThanoSQLValueError("Values cannot be empty")
 
-        # Create a list of PSQL string representations of value tuples, such as
-        # ["(value1, value2)", "(value3, value4)"]
-        values_str_list = []
-        for value in values:
-            value_transformed = tuple(map(to_postgresql_value, value))
-            value_str = ", ".join(value_transformed)
-            value_str = f"({value_str})"
-            values_str_list.append(value_str)
+        if page_size < 1 or page_size > 100:
+            raise ThanoSQLValueError(
+                "Page size can only range from 1 to 100 (inclusive)"
+            )
 
-        # Combine tuple strings into one valid PSQL values string, and then substitute
-        # it into user's original query, replacing the first %s placeholder
-        values_str = ",\n".join(values_str_list)
-        query_replaced = query.replace("%s", values_str, 1)
+        completed_query = fill_query_placeholder(query, values, template, page_size)
 
         path = f"/{self.tag}/"
         query_params = self._create_input_dict(
@@ -236,7 +275,7 @@ class QueryService(ThanoSQLService):
             overwrite=overwrite,
             max_results=max_results,
         )
-        payload = self._create_input_dict(query_string=query_replaced)
+        payload = self._create_input_dict(query_string=completed_query)
 
         raw_response = self.client._request(
             method="post", path=path, query_params=query_params, payload=payload

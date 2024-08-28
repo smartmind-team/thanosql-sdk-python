@@ -1,5 +1,9 @@
 import json
-from typing import Union
+from typing import Iterable, List, Optional, Union
+
+from jinja2 import BaseLoader, Environment, StrictUndefined
+
+from thanosql._error import ThanoSQLValueError
 
 
 def _stringify_list(val: object) -> str:
@@ -40,7 +44,7 @@ def _to_postgresql_value_helper(val: object) -> Union[str, list]:
     return str(val)
 
 
-def to_postgresql_value(val: object) -> str:
+def _to_postgresql_value(val: object) -> str:
     val = _to_postgresql_value_helper(val)
     # There are two possible array representations in PSQL,
     # '{{...}, {...}}' and ARRAY[[...], [...]]
@@ -52,3 +56,108 @@ def to_postgresql_value(val: object) -> str:
         return f"ARRAY{_stringify_list(val)}"
     # All other values do not need special treatment
     return val
+
+
+def _split_query(query: str) -> list:
+    # Make sure there is only one {{ val }} placeholder
+    split_val = query.split("{{ val }}")
+    if len(split_val) != 2:
+        raise ThanoSQLValueError("One and only one {{ val }} placeholder is required")
+
+    # Next separate the statement that contains the placeholder
+    # Split by semicolons and set aside statements that are closest to {{ val }}
+    # Prepare four parts:
+    #   - before placeholder, statement not containing placeholder
+    #   - before placeholder, in the statement containing placeholder
+    #   - after placeholder, in the statement containing placeholder
+    #   - after placeholder, statement not containing placeholder
+    result = [None] * 4
+
+    split_pre = split_val[0].split(";")
+    result[1] = split_pre[-1]
+    if len(split_pre) > 1:
+        result[0] = ";".join(split_pre[:-1])
+
+    split_post = split_val[1].split(";")
+    result[2] = split_post[0]
+    if len(split_post) > 1:
+        result[3] = ";".join(split_post[1:])
+
+    return result
+
+
+def _paginate(seq: Iterable, page_size: int):
+    """Consume an iterable and return it in chunks.
+
+    Every chunk is at most `page_size`. Never return an empty chunk.
+    From https://github.com/psycopg/psycopg2/blob/master/lib/extras.py#L1175
+    """
+    page = []
+    it = iter(seq)
+    while True:
+        try:
+            for _ in range(page_size):
+                page.append(next(it))
+            yield page
+            page = []
+        except StopIteration:
+            if page:
+                yield page
+            return
+
+
+def _render(query: str, params: dict) -> str:
+    template = Environment(loader=BaseLoader, undefined=StrictUndefined).from_string(
+        query
+    )
+    return template.render(**params)
+
+
+def fill_query_placeholder(
+    query: str,
+    values: Union[List[tuple], List[dict]],
+    template: Optional[str] = None,
+    page_size: int = 100,
+) -> str:
+    # The query consists of three parts:
+    # {{ 1. before val }}{{ 2. statement containing val }}{{ 3. after val }}
+    split_query = _split_query(query)
+
+    completed_query_list = [split_query[0]] if split_query[0] is not None else []
+
+    # Send the values according to the defined page size
+    for page in _paginate(values, page_size):
+        val_query_list = []
+
+        for args in page:
+            if not template:
+                if not isinstance(args, tuple):
+                    raise ThanoSQLValueError(
+                        "If template is not provided, values must be given as a list of tuples"
+                    )
+
+                # If there is no template, simply join values inside brackets separated by commas
+                # We cannot directly use str(args) as this may result in unwanted quotations
+                args_transformed = tuple(map(_to_postgresql_value, args))
+                args_str = ", ".join(args_transformed)
+                args_query = f"({args_str})"
+
+            else:
+                if not isinstance(args, dict):
+                    raise ThanoSQLValueError(
+                        "If template is provided, values must be given as a list of dictionaries"
+                    )
+
+                # If there is a template, we substitute the arguments into the template
+                args_query = _render(template, args)
+
+            val_query_list.append(args_query)
+
+        # Assemble: before - values - after in statement containing value placeholder
+        val_query = split_query[1] + ", ".join(val_query_list) + split_query[2]
+        completed_query_list.append(val_query)
+
+    if split_query[-1] is not None:
+        completed_query_list.append(split_query[-1])
+
+    return ";".join(completed_query_list)
