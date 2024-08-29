@@ -149,7 +149,8 @@ def fill_query_placeholder(
                     )
 
                 # If there is a template, we substitute the arguments into the template
-                args_query = _render(template, args)
+                args_transformed = {k: _to_postgresql_value(v) for k, v in args.items()}
+                args_query = _render(template, args_transformed)
 
             val_query_list.append(args_query)
 

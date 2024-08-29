@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 from pydantic import TypeAdapter
 
+from thanosql._error import ThanoSQLValueError
 from thanosql._service import ThanoSQLService
 from thanosql._util import fill_query_placeholder
 from thanosql.resources._model import BaseModel
