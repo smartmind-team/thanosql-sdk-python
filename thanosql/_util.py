@@ -1,5 +1,5 @@
 import json
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 from jinja2 import BaseLoader, Environment, StrictUndefined
 
@@ -58,32 +58,13 @@ def _to_postgresql_value(val: object) -> str:
     return val
 
 
-def _split_query(query: str) -> list:
+def _split_query(query: str) -> Tuple[str, str]:
     # Make sure there is only one {{ val }} placeholder
     split_val = query.split("{{ val }}")
     if len(split_val) != 2:
         raise ThanoSQLValueError("One and only one {{ val }} placeholder is required")
 
-    # Next separate the statement that contains the placeholder
-    # Split by semicolons and set aside statements that are closest to {{ val }}
-    # Prepare four parts:
-    #   - before placeholder, statement not containing placeholder
-    #   - before placeholder, in the statement containing placeholder
-    #   - after placeholder, in the statement containing placeholder
-    #   - after placeholder, statement not containing placeholder
-    result = [None] * 4
-
-    split_pre = split_val[0].split(";")
-    result[1] = split_pre[-1]
-    if len(split_pre) > 1:
-        result[0] = ";".join(split_pre[:-1])
-
-    split_post = split_val[1].split(";")
-    result[2] = split_post[0]
-    if len(split_post) > 1:
-        result[3] = ";".join(split_post[1:])
-
-    return result
+    return split_val[0], split_val[1]
 
 
 def _paginate(seq: Iterable, page_size: int):
@@ -119,13 +100,16 @@ def fill_query_placeholder(
     template: Optional[str] = None,
     page_size: int = 100,
 ) -> str:
-    # The query consists of three parts:
-    # {{ 1. before val }}{{ 2. statement containing val }}{{ 3. after val }}
-    split_query = _split_query(query)
+    # The query statement consists of three parts:
+    # {{ 1. before val }}{{ 2. val placeholder }}{{ 3. after val }}
+    # Split the query with regards to {{ val }} into pre and post parts
+    pre, post = _split_query(query)
 
-    completed_query_list = [split_query[0]] if split_query[0] is not None else []
+    full_query_list = []
 
-    # Send the values according to the defined page size
+    # Fill in the values to the query according to the defined page size
+    # We will repeat the statement (with values) according to the number of pages
+    # Each page contains at most page_size number of value sets
     for page in _paginate(values, page_size):
         val_query_list = []
 
@@ -154,11 +138,8 @@ def fill_query_placeholder(
 
             val_query_list.append(args_query)
 
-        # Assemble: before - values - after in statement containing value placeholder
-        val_query = split_query[1] + ", ".join(val_query_list) + split_query[2]
-        completed_query_list.append(val_query)
+        # Assemble: pre - values - post in query statement
+        val_query = pre + ", ".join(val_query_list) + post
+        full_query_list.append(val_query)
 
-    if split_query[-1] is not None:
-        completed_query_list.append(split_query[-1])
-
-    return ";".join(completed_query_list)
+    return ";\n".join(full_query_list)
