@@ -59,10 +59,12 @@ def _to_postgresql_value(val: object) -> str:
 
 
 def _split_query(query: str) -> Tuple[str, str]:
-    # Make sure there is only one {{ val }} placeholder
-    split_val = query.split("{{ val }}")
+    # Make sure there is only one {{ values }} placeholder
+    split_val = query.split("{{ values }}")
     if len(split_val) != 2:
-        raise ThanoSQLValueError("One and only one {{ val }} placeholder is required")
+        raise ThanoSQLValueError(
+            "One and only one {{ values }} placeholder is required"
+        )
 
     return split_val[0], split_val[1]
 
@@ -101,8 +103,8 @@ def fill_query_placeholder(
     page_size: int = 100,
 ) -> str:
     # The query statement consists of three parts:
-    # {{ 1. before val }}{{ 2. val placeholder }}{{ 3. after val }}
-    # Split the query with regards to {{ val }} into pre and post parts
+    # {{ 1. before values }}{{ 2. values placeholder }}{{ 3. after values }}
+    # Split the query with regards to {{ values }} into pre and post parts
     pre, post = _split_query(query)
 
     full_query_list = []

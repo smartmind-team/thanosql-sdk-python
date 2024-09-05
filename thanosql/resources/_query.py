@@ -171,11 +171,11 @@ class QueryService(ThanoSQLService):
         Parameters
         ----------
         query: str
-            The query string with a "{{ val }}" placeholder to be executed.
+            The query string with a "{{ values }}" placeholder to be executed.
         values: list of tuples
             List of values to be inserted to the placeholder(s).
         template: str, optional
-            How values should be formatted inside {{ val }}. If it is left
+            How values should be formatted inside {{ values }}. If it is left
             empty, values will just be listed inside brackets separated by commas.
             In this case, values should be a list of tuples. For example, we have
             the following values:
@@ -185,7 +185,7 @@ class QueryService(ThanoSQLService):
             and we leave template empty. The original query looks like
             ```
             VALUES
-                {{ val }}
+                {{ values }}
             ```
             The rendered query will look like
             ```
@@ -237,7 +237,7 @@ class QueryService(ThanoSQLService):
         ------
         ThanoSQLValueError
             - If values is empty.
-            - If page_size is not between 1 and 100 (inclusive).
+            - If page_size is less than 1.
             - If max_results is not between 0 and 100 (inclusive).
             - If the formats of template and values don't match.
 
@@ -245,10 +245,9 @@ class QueryService(ThanoSQLService):
         if len(values) == 0:
             raise ThanoSQLValueError("Values cannot be empty")
 
-        if page_size < 1 or page_size > 100:
-            raise ThanoSQLValueError(
-                "Page size can only range from 1 to 100 (inclusive)"
-            )
+        # If we let page_sizes of 0 or less, they will trigger an infinite loop
+        if page_size < 1:
+            raise ThanoSQLValueError("Page size can only be 1 or more")
 
         completed_query = fill_query_placeholder(query, values, template, page_size)
 
