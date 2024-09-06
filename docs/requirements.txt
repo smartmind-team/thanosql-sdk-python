@@ -1,3 +1,5 @@
+lumache
+myst-nb
 sphinx-autoapi==3.0.0
 sphinx-rtd-theme==2.0.0
 sphinxcontrib-applehelp==1.0.8
@@ -8,5 +10,3 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-napoleon==0.7
 sphinxcontrib-qthelp==1.0.7
 sphinxcontrib-serializinghtml==1.1.10
-myst-nb
-lumache
