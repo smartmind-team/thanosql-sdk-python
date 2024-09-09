@@ -195,18 +195,18 @@ class TableService(ThanoSQLService):
             updated. Any attribute of BaseTable can be modified, and if left
             unset, the current value will be maintained after update.
             The attributes are as follows:
-            - name: new name to rename the table to
-            - schema: new schema to move the table to
-            - columns: new columns of the updated table. All new columns
-                must be in this object, including columns that already exist
-                in the original table. If this attribute is set but some
-                original columns are not included, they will be removed from
-                the table.
-            - constraints: new constraints of the updated table. All new
-                constraints must be in this object, including constraints
-                that already exist in the original table. If this attribute is
-                set but some original constraints are not included, they will
-                be removed from the table.
+                - name: new name to rename the table to
+                - schema: new schema to move the table to
+                - columns: new columns of the updated table. All new columns \
+                    must be in this object, including columns that already exist \
+                    in the original table. If this attribute is set but some \
+                    original columns are not included, they will be removed from \
+                    the table.
+                - constraints: new constraints of the updated table. All new \
+                    constraints must be in this object, including constraints \
+                    that already exist in the original table. If this attribute is \
+                    set but some original constraints are not included, they will \
+                    be removed from the table.
 
         Returns
         -------
@@ -234,6 +234,7 @@ class TableService(ThanoSQLService):
         name: str,
         table: TableObject,
         schema: Optional[str] = None,
+        if_not_exists: bool = False,
     ) -> Table:
         """Creates a new table.
 
@@ -248,6 +249,11 @@ class TableService(ThanoSQLService):
         schema : str, optional
             The schema to save the created table in. If not specified, the table
             will be saved to "public".
+        if_not_exists: bool, default False
+            Whether to throw an error if a table of the same name already
+            exists. When set to False (default), an error will be shown. When True,
+            the table will only be created if it does not exist already.
+            Otherwise, do nothing.
 
         Returns
         -------
@@ -261,7 +267,9 @@ class TableService(ThanoSQLService):
 
         """
         path = f"/{self.tag}/{name}"
-        query_params = self._create_input_dict(schema=schema)
+        query_params = self._create_input_dict(
+            schema=schema, if_not_exists=if_not_exists
+        )
         payload = self._create_input_dict(table=table)
 
         raw_response = self.client._request(
@@ -311,11 +319,11 @@ class TableService(ThanoSQLService):
         if_exists : str, default "fail"
             What to do if table of the same name already exists. There are only
             three available values:
-            - fail: fails (throws an error) if the same table exists
-            - append: appends records into an existing table (columns must match
-                in order to not make an error)
-            - replace: deletes existing table and creates a new one with the
-                given name
+                - fail: fails (throws an error) if the same table exists
+                - append: appends records into an existing table (columns must match \
+                    in order to not make an error)
+                - replace: deletes existing table and creates a new one with the \
+                    given name
 
         Returns
         -------
@@ -436,6 +444,11 @@ class TableService(ThanoSQLService):
         )
 
 
+class OnConflict(enum.Enum):
+    FAIL = "fail"
+    SKIP = "skip"
+
+
 class Table(BaseTable):
     """Extends the BaseTable class, which has name, schema,
     columns, and constraints as attributes, with a table service
@@ -517,14 +530,21 @@ class Table(BaseTable):
     def insert(
         self,
         records: List[dict],
+        on_conflict: str = "fail",
     ) -> Table:
         """Inserts records to the specified table.
 
         Parameters
         ----------
         records : list of dict
-            The records to be inserted in the format of a list of
-            column-value pairs.
+            The records to be inserted in the format of a list of column-value pairs.
+        on_conflict : str, default "fail"
+            What to do when conflict(s) due to unique constraint violation happen(s).
+            There are only two available values:
+                - fail: fails (throws an error) if any of the record violates the target \
+                    table's unique constraint(s)
+                - skip: skips record(s) that violate(s) unique constraint(s) and insert \
+                    the rest
 
         Returns
         -------
@@ -534,11 +554,19 @@ class Table(BaseTable):
         Raises
         ------
         ThanoSQLValueError
-            If the records are in an invalid format or contain invalid contents.
+            - If on_conflict is not one of "fail" or "skip".
+            - If the records are in an invalid format or contain invalid contents.
 
         """
+        try:
+            on_conflict_enum = OnConflict(on_conflict)
+        except Exception as e:
+            raise ThanoSQLValueError(str(e))
+
         path = f"/{self.service.tag}/{self.name}/records"
-        query_params = self.service._create_input_dict(schema=self.table_schema)
+        query_params = self.service._create_input_dict(
+            schema=self.table_schema, on_conflict=on_conflict_enum.value
+        )
 
         raw_response = self.service.client._request(
             method="post", path=path, query_params=query_params, payload=records
@@ -583,6 +611,7 @@ class TableTemplateService(ThanoSQLService):
             contain. If not set, all table templates are returned by default.
         order_by : str, optional
             How to order the results. There are only three possible values:
+
             - recent: based on the date of creation, from most recent to oldest
             - name_asc: based on the name of the template, from A to Z
             - name_desc: based on the name of the template, from Z to A

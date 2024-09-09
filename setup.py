@@ -31,6 +31,7 @@ setup(
     keywords="smartmind thanosql sdk",
     packages=find_packages(exclude=["tests", "tests.*"]),
     install_requires=[
+        "jinja2",
         "numpy",
         "openpyxl",
         "pandas",

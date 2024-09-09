@@ -72,10 +72,12 @@ class FileService(ThanoSQLService):
 
         Returns
         -------
-        Depending on option:
-        - default (None): Returns a Content Pydantic object containing
-            information on the target path
-        - download: Downloads the requested file and returns nothing
+        Content | None
+            Depending on option:
+
+            - default (None): Returns a Content Pydantic object containing \
+                information on the target path
+            - download: Downloads the requested file and returns nothing
 
         Raises
         ------
