@@ -15,19 +15,25 @@ if TYPE_CHECKING:
     from thanosql._client import ThanoSQL
 
 
+# Since now the QueryLog response from API gateway excludes None values, we have to
+# explicitly set the default values of Optional fields in the SDK model to None as
+# Pydantic no longer does this implicitly in V2. Otherwise, a validation error will
+# occur because some fields are treated as missing.
 class QueryLog(BaseModel):
-    query_id: Optional[str]
-    statement_type: Optional[str]
-    start_time: Optional[datetime]
-    end_time: Optional[datetime]
+    query_id: Optional[str] = None
+    statement_type: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
     query: str
     referer: str
-    state: Optional[str]
-    destination_table_name: Optional[str]
-    destination_schema: Optional[str]
-    error_result: Optional[str]
-    created_at: Optional[datetime]
+    state: Optional[str] = None
+    destination_table_name: Optional[str] = None
+    destination_schema: Optional[str] = None
+    error_result: Optional[str] = None
+    created_at: Optional[datetime] = None
     records: Optional[Records] = None
+    total_records: int
+    affected_records: Optional[int] = None
 
 
 class QueryService(ThanoSQLService):
