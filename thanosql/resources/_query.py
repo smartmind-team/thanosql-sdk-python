@@ -189,38 +189,38 @@ class QueryService(ThanoSQLService):
             How values should be formatted inside {{ values }}. If it is left
             empty, values will just be listed inside brackets separated by commas.
             In this case, values should be a list of tuples. For example, we have
-            the following values:
-            ```
-            [(1, "gangnam", "seoul"), (2, "haeundae", "busan")]
-            ```
-            and we leave template empty. The original query looks like
-            ```
-            VALUES
-                {{ values }}
-            ```
-            The rendered query will look like
-            ```
-            VALUES
-                (1, 'gangnam', 'seoul'),
-                (2, 'haeundae', 'busan')
-            ```
-            Meanwhile, if we have the following named values:
-            ```
-            [
-                {"id": 1, "name": "gangnam", "city": "seoul"},
-                {"id": 2, "name": "haeundae", "city": "busan"},
-            ]
-            ```
-            and we have the following template:
-            ```
-            ({{ id }}, CONCAT(INITCAP({{ name }}), '-gu'), INITCAP({{ city }}))
-            ```
-            the rendered query will be:
-            ```
-            VALUES
-                (1, CONCAT(INITCAP('gangnam', '-gu')), INITCAP('seoul')),
-                (2, CONCAT(INITCAP('haeundae', '-gu')), INITCAP('busan'))
-            ```
+            the following values::
+
+                [(1, "gangnam", "seoul"), (2, "haeundae", "busan")]
+
+            and we leave template empty. The original query looks like::
+
+                VALUES
+                    {{ values }}
+
+            The rendered query will look like::
+
+                VALUES
+                    (1, 'gangnam', 'seoul'),
+                    (2, 'haeundae', 'busan')
+
+            Meanwhile, if we have the following named values::
+
+                [
+                    {"id": 1, "name": "gangnam", "city": "seoul"},
+                    {"id": 2, "name": "haeundae", "city": "busan"},
+                ]
+
+            and we have the following template::
+
+                ({{ id }}, CONCAT(INITCAP({{ name }}), '-gu'), INITCAP({{ city }}))
+
+            the rendered query will be::
+
+                VALUES
+                    (1, CONCAT(INITCAP('gangnam', '-gu')), INITCAP('seoul')),
+                    (2, CONCAT(INITCAP('haeundae', '-gu')), INITCAP('busan'))
+
         page_size: int, default 100
             The maximum number of rows (set of values) to be sent in one statement.
             If not specified, it defaults to 100.
