@@ -66,6 +66,7 @@ class QueryService(ThanoSQLService):
         schema: Optional[str] = None,
         table_name: Optional[str] = None,
         overwrite: Optional[bool] = None,
+        keep_temp_table: Optional[bool] = None,
         max_results: int = 100,
     ) -> QueryLog:
         """Executes a query string.
@@ -110,6 +111,9 @@ class QueryService(ThanoSQLService):
         overwrite: bool, optional
             Whether to overwrite the table if a table with the same `table_name`
             and `schema` already exists. If not specified, the value is False.
+        keep_temp_table: bool, optional
+            Whether to save temporary tables produced by query execution to the "qm"
+            schema or not. If not specified, the value is True.
         max_results: int, optional
             The maximum number of records to be returned by the response QueryLog.
             If not specified, it defaults to 100.
@@ -138,6 +142,7 @@ class QueryService(ThanoSQLService):
             schema=schema,
             table_name=table_name,
             overwrite=overwrite,
+            keep_temp_table=keep_temp_table,
             max_results=max_results,
         )
         payload = self._create_input_dict(
