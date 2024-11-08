@@ -66,6 +66,7 @@ class QueryService(ThanoSQLService):
         schema: Optional[str] = None,
         table_name: Optional[str] = None,
         overwrite: Optional[bool] = None,
+        keep_temp_table: Optional[bool] = None,
         max_results: int = 100,
     ) -> QueryLog:
         """Executes a query string.
@@ -110,6 +111,9 @@ class QueryService(ThanoSQLService):
         overwrite: bool, optional
             Whether to overwrite the table if a table with the same `table_name`
             and `schema` already exists. If not specified, the value is False.
+        keep_temp_table: bool, optional
+            Whether to save temporary tables produced by query execution to the "qm"
+            schema or not. If not specified, the value is True.
         max_results: int, optional
             The maximum number of records to be returned by the response QueryLog.
             If not specified, it defaults to 100.
@@ -138,6 +142,7 @@ class QueryService(ThanoSQLService):
             schema=schema,
             table_name=table_name,
             overwrite=overwrite,
+            keep_temp_table=keep_temp_table,
             max_results=max_results,
         )
         payload = self._create_input_dict(
@@ -184,38 +189,38 @@ class QueryService(ThanoSQLService):
             How values should be formatted inside {{ values }}. If it is left
             empty, values will just be listed inside brackets separated by commas.
             In this case, values should be a list of tuples. For example, we have
-            the following values:
-            ```
-            [(1, "gangnam", "seoul"), (2, "haeundae", "busan")]
-            ```
-            and we leave template empty. The original query looks like
-            ```
-            VALUES
-                {{ values }}
-            ```
-            The rendered query will look like
-            ```
-            VALUES
-                (1, 'gangnam', 'seoul'),
-                (2, 'haeundae', 'busan')
-            ```
-            Meanwhile, if we have the following named values:
-            ```
-            [
-                {"id": 1, "name": "gangnam", "city": "seoul"},
-                {"id": 2, "name": "haeundae", "city": "busan"},
-            ]
-            ```
-            and we have the following template:
-            ```
-            ({{ id }}, CONCAT(INITCAP({{ name }}), '-gu'), INITCAP({{ city }}))
-            ```
-            the rendered query will be:
-            ```
-            VALUES
-                (1, CONCAT(INITCAP('gangnam', '-gu')), INITCAP('seoul')),
-                (2, CONCAT(INITCAP('haeundae', '-gu')), INITCAP('busan'))
-            ```
+            the following values::
+
+                [(1, "gangnam", "seoul"), (2, "haeundae", "busan")]
+
+            and we leave template empty. The original query looks like::
+
+                VALUES
+                    {{ values }}
+
+            The rendered query will look like::
+
+                VALUES
+                    (1, 'gangnam', 'seoul'),
+                    (2, 'haeundae', 'busan')
+
+            Meanwhile, if we have the following named values::
+
+                [
+                    {"id": 1, "name": "gangnam", "city": "seoul"},
+                    {"id": 2, "name": "haeundae", "city": "busan"},
+                ]
+
+            and we have the following template::
+
+                ({{ id }}, CONCAT(INITCAP({{ name }}), '-gu'), INITCAP({{ city }}))
+
+            the rendered query will be::
+
+                VALUES
+                    (1, CONCAT(INITCAP('gangnam', '-gu')), INITCAP('seoul')),
+                    (2, CONCAT(INITCAP('haeundae', '-gu')), INITCAP('busan'))
+
         page_size: int, default 100
             The maximum number of rows (set of values) to be sent in one statement.
             If not specified, it defaults to 100.
